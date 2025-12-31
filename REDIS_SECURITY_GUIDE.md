@@ -33,7 +33,7 @@ Mekanisme keamanan untuk mencegah pencurian token:
 Karena JWT bersifat *stateless*, sistem menggunakan Redis untuk mematikan token yang masih berlaku saat user logout.
 
 **Alur Logout:**
-1. **Refresh Token**: Dihapus dari Database (Tabel `refresh_tokens`).
+1. **Refresh Token**: Di-mark sebagai **Revoked** di Database (Tabel `refresh_tokens`). Ini memberikan histori/audit trail yang baik.
 2. **Access Token**: Dimasukkan ke dalam **Blacklist Redis** dengan prefix `jwt_blacklist:`.
 3. **TTL Dinamis**: Token di-blacklist hanya selama sisa waktu kadaluarsanya (efisien memori).
 

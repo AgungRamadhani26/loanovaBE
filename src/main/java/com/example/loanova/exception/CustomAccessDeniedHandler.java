@@ -11,6 +11,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import java.time.Instant;
 import java.io.IOException;
 
 /**
@@ -37,10 +40,15 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
             .success(false)
             .message("Anda tidak memiliki akses untuk mengakses resource ini")
             .data(null)
+            .code(HttpStatus.FORBIDDEN.value())
+            .timestamp(Instant.now())
             .build();
 
       // Convert ke JSON dan kirim
       ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
       String jsonResponse = mapper.writeValueAsString(apiResponse);
       response.getWriter().write(jsonResponse);
    }

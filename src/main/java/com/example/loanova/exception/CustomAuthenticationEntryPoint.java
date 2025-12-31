@@ -11,6 +11,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import java.time.Instant;
 import java.io.IOException;
 
 /**
@@ -37,10 +40,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             .success(false)
             .message("Autentikasi gagal. Silakan login terlebih dahulu")
             .data(null)
+            .code(HttpStatus.UNAUTHORIZED.value())
+            .timestamp(Instant.now())
             .build();
 
       // Convert ke JSON dan kirim
       ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+      
       String jsonResponse = mapper.writeValueAsString(apiResponse);
       response.getWriter().write(jsonResponse);
    }

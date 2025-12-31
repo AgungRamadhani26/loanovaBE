@@ -220,11 +220,14 @@ public class AuthService implements UserDetailsService {
             RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenString)
                         .orElseThrow(() -> new BusinessException("Refresh token tidak ditemukan"));
 
-            // STEP 6: Check expiration date di database
-            if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-                  // Hapus refresh token yang expired dari database
+            // STEP 6: Check expiration date & revocation status
+            if (refreshToken.isExpired()) {
                   refreshTokenRepository.delete(refreshToken);
                   throw new BusinessException("Refresh token sudah expired, silakan login ulang");
+            }
+
+            if (refreshToken.isRevoked()) {
+                  throw new BusinessException("Refresh token sudah tidak berlaku (revoked), silakan login ulang");
             }
 
             // STEP 7: Token Rotation - Generate access & refresh token BARU
@@ -232,8 +235,12 @@ public class AuthService implements UserDetailsService {
             String newRefreshTokenString = jwtService.generateRefreshToken(userDetails);
 
             // STEP 8: Update refresh token di database (Revoke yang lama)
+            // Audit Style: Mark yang lama sebagai revoked, simpan yang baru (atau update row)
+            // Di sini kita update row yang sama tapi mark revoked dulu sebagai histori (opsional)
+            // Untuk simplisitas saat ini kita update & reset revokedAt jika ada
             refreshToken.setToken(newRefreshTokenString);
             refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7));
+            refreshToken.setRevokedAt(null); // Pastikan token baru tidak revoked
             refreshTokenRepository.save(refreshToken);
 
             // STEP 9: Return response dengan token baru
@@ -260,11 +267,14 @@ public class AuthService implements UserDetailsService {
        */
       @Transactional
       public void logout(String accessToken, String refreshTokenString) {
-            // 1. Blacklist Access Token di Redis
+            // 1. Blacklist Access Token di Redis (stateless)
             jwtService.blacklistToken(accessToken);
 
-            // 2. Hapus/Revoke Refresh Token di Database
+            // 2. Revoke Refresh Token di Database (Audit Style)
             refreshTokenRepository.findByToken(refreshTokenString)
-                        .ifPresent(refreshTokenRepository::delete);
+                        .ifPresent(token -> {
+                              token.revoke();
+                              refreshTokenRepository.save(token);
+                        });
       }
 }

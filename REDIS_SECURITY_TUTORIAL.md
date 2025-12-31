@@ -89,23 +89,29 @@ public AuthResponse refreshAccessToken(String oldRefreshToken) {
 
 ## Langkah 5: Keamanan - Logout & Redis Blacklist
 
-### 1. Simpan ke Blacklist (JwtService.java)
-Gunakan `StringRedisTemplate` untuk memasukkan token ke Redis secara manual saat user klik logout.
+### 1. Simpan ke Blacklist & Revoke (AuthService.java)
+Gunakan kombinasi Redis untuk Access Token dan Database untuk Refresh Token.
 
 ```java
-public void blacklistToken(String token) {
-    long remainingTime = getSisaWaktuToken(token);
-    redisTemplate.opsForValue().set("jwt_blacklist:" + token, "true", remainingTime, TimeUnit.SECONDS);
+@Transactional
+public void logout(String accessToken, String refreshTokenString) {
+    // 1. Blacklist Access Token di Redis (Stateless)
+    jwtService.blacklistToken(accessToken);
+
+    // 2. Revoke Refresh Token di Database (Audit Style - Lebih Aman!)
+    refreshTokenRepository.findByToken(refreshTokenString)
+        .ifPresent(token -> {
+            token.revoke(); // Mengisi kolom revoked_at
+            refreshTokenRepository.save(token);
+        });
 }
 ```
 
-### 2. Cek di Security Filter (JwtAuthenticationFilter.java)
-Cek setiap request yang masuk. Jika token ada di blacklist, tolak!
-
+### 2. Cek Status Revoke saat Refresh
+Jangan izinkan refresh jika token sudah pernah di-revoke sebelumnya.
 ```java
-if (jwtService.isTokenBlacklisted(token)) {
-    filterChain.doFilter(request, response);
-    return; // Stop di sini
+if (refreshToken.isRevoked()) {
+    throw new BusinessException("Token sudah tidak berlaku (revoked)");
 }
 ```
 
