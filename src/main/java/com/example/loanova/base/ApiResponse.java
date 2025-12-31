@@ -11,7 +11,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiResponse <T>{
+public class ApiResponse<T> {
     private Boolean success;
     private String message;
     private T data;

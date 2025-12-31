@@ -27,6 +27,13 @@ public class UserController {
         return ResponseUtil.ok(users, "Berhasil mengambil daftar pengguna");
     }
 
+    // GET USER BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseUtil.ok(user, "Berhasil mengambil data pengguna");
+    }
+
     // CREATE USER
     @PostMapping
     public ResponseEntity<ApiResponse<UserResponse>> createUser(
