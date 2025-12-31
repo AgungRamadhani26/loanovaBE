@@ -75,6 +75,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // "Bearer eyJhbGc..." → "eyJhbGc..."
         jwt = authHeader.substring(7);
 
+        // STEP 3.1: Check apakah token di-blacklist (Logout)
+        // Kalau sudah logout, token tidak boleh dipakai lagi
+        if (jwtService.isTokenBlacklisted(jwt)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             // STEP 4: Extract username dari JWT
             // JWT di-decode, ambil claim "subject" (username/email)

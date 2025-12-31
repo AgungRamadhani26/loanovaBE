@@ -88,4 +88,21 @@ public class AuthController {
       AuthResponse authResponse = authService.refreshAccessToken(request.getRefreshToken());
       return ResponseUtil.success(authResponse, "Token berhasil di-refresh", HttpStatus.OK);
    }
+
+   /**
+    * LOGOUT ENDPOINT
+    * 
+    * Request:
+    * POST /api/auth/logout
+    * Header: Authorization: Bearer <accessToken>
+    * Body: { "refreshToken": "..." }
+    */
+   @PostMapping("/logout")
+   public ResponseEntity<ApiResponse<Void>> logout(
+         @RequestHeader("Authorization") String authHeader,
+         @Valid @RequestBody RefreshTokenRequest request) {
+      String accessToken = authHeader.substring(7);
+      authService.logout(accessToken, request.getRefreshToken());
+      return ResponseUtil.success(null, "Logout berhasil", HttpStatus.OK);
+   }
 }

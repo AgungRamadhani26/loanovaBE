@@ -6,6 +6,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +32,14 @@ import java.util.function.Function;
  */
 @Service
 public class JwtService {
+
+    private final StringRedisTemplate redisTemplate;
+
+    public static final String BLACKLIST_PREFIX = "jwt_blacklist:";
+
+    public JwtService(StringRedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     // Secret key untuk sign & verify JWT
     // HARUS minimal 256-bit (32 karakter) untuk HMAC-SHA256
@@ -263,5 +273,31 @@ public class JwtService {
 
         // Create HMAC-SHA256 key dari byte array
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    /**
+     * BLACKLIST TOKEN - Simpan token ke Redis agar tidak bisa dipakai lagi (Logout)
+     * 
+     * @param token JWT token string
+     */
+    public void blacklistToken(String token) {
+        long expirationInSeconds = getTokenExpirationInSeconds(token);
+        if (expirationInSeconds > 0) {
+            redisTemplate.opsForValue().set(
+                    BLACKLIST_PREFIX + token,
+                    "true",
+                    expirationInSeconds,
+                    TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * CHECK IS BLACKLISTED - Apakah token ada di blacklist?
+     * 
+     * @param token JWT token string
+     * @return true kalau di-blacklist, false kalau tidak
+     */
+    public boolean isTokenBlacklisted(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
     }
 }
