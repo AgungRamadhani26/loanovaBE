@@ -75,9 +75,9 @@ public class GlobalExceptionHandler {
                 "Autentikasi gagal. Silakan login terlebih dahulu");
     }
 
-    /* Untuk exception lainnya */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneral(Exception ex) {
+        ex.printStackTrace(); // DEBUGGING: Print error stack trace to console
         return ResponseUtil.error(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Terjadi kesalahan pada server");

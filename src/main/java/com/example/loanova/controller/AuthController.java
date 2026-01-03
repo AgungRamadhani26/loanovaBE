@@ -6,6 +6,8 @@ import com.example.loanova.dto.request.RefreshTokenRequest;
 import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
 import com.example.loanova.dto.response.RegisterResponse;
+import com.example.loanova.dto.request.ForgotPasswordRequest;
+import com.example.loanova.dto.request.ResetPasswordRequest;
 import com.example.loanova.service.AuthService;
 import com.example.loanova.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -122,5 +124,23 @@ public class AuthController {
       String accessToken = authHeader.substring(7);
       authService.logout(accessToken, request.getRefreshToken());
       return ResponseUtil.success(null, "Logout berhasil", HttpStatus.OK);
+   }
+
+   /**
+    * ENDPOINT LUPA KATA SANDI
+    */
+   @PostMapping("/forgot-password")
+   public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+       authService.forgotPassword(request.getEmail());
+       return ResponseUtil.success(null, "Link reset password telah dikirim ke email Anda", HttpStatus.OK);
+   }
+
+   /**
+    * ENDPOINT RESET KATA SANDI
+    */
+   @PostMapping("/reset-password")
+   public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+       authService.resetPassword(request.getToken(), request.getNewPassword());
+       return ResponseUtil.success(null, "Password berhasil diubah", HttpStatus.OK);
    }
 }

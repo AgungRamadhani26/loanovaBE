@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,6 +62,7 @@ public class UserService {
         }
 
         /* Menambahkan User baru ke dalam sistem */
+        @Transactional
         @CacheEvict(value = "users", allEntries = true)
         public UserResponse createUser(UserRequest request) {
                 if (userRepository.existsByUsername(request.getUsername())) {
@@ -99,6 +101,7 @@ public class UserService {
         }
 
         /* Mengupdate data user */
+        @Transactional
         @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
         public UserResponse updateUser(Long id, UserUpdateRequest request) {
                 User user = userRepository.findById(id)
@@ -142,6 +145,7 @@ public class UserService {
         }
 
         /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
+        @Transactional
         @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
         public void deleteUser(Long id) {
                 User user = userRepository.findById(id)
@@ -166,5 +170,7 @@ public class UserService {
                                                                 .collect(Collectors.toSet()))
                                 .build();
         }
+
+
 
 }

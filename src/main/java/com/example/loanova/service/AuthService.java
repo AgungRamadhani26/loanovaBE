@@ -11,7 +11,13 @@ import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.repository.RefreshTokenRepository;
 import com.example.loanova.repository.RoleRepository;
+import com.example.loanova.repository.RoleRepository;
 import com.example.loanova.repository.UserRepository;
+import com.example.loanova.repository.PasswordResetTokenRepository;
+import com.example.loanova.entity.PasswordResetToken;
+import com.example.loanova.exception.ResourceNotFoundException;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -50,9 +56,14 @@ public class AuthService implements UserDetailsService {
       private final UserRepository userRepository;
       private final RefreshTokenRepository refreshTokenRepository;
       private final RoleRepository roleRepository;
+      private final PasswordResetTokenRepository passwordResetTokenRepository;
+      private final EmailService emailService;
       private final JwtService jwtService;
       private final AuthenticationManager authenticationManager;
       private final PasswordEncoder passwordEncoder;
+
+      @Value("${app.frontend.url:http://localhost:9091}")
+      private String frontendUrl;
 
       /**
        * Constructor dengan manual injection
@@ -64,12 +75,16 @@ public class AuthService implements UserDetailsService {
                   UserRepository userRepository,
                   RefreshTokenRepository refreshTokenRepository,
                   RoleRepository roleRepository,
+                  PasswordResetTokenRepository passwordResetTokenRepository,
+                  EmailService emailService,
                   JwtService jwtService,
                   @Lazy AuthenticationManager authenticationManager,
                   PasswordEncoder passwordEncoder) {
             this.userRepository = userRepository;
             this.refreshTokenRepository = refreshTokenRepository;
             this.roleRepository = roleRepository;
+            this.passwordResetTokenRepository = passwordResetTokenRepository;
+            this.emailService = emailService;
             this.jwtService = jwtService;
             this.authenticationManager = authenticationManager;
             this.passwordEncoder = passwordEncoder;
@@ -344,5 +359,60 @@ public class AuthService implements UserDetailsService {
                               token.revoke();
                               refreshTokenRepository.save(token);
                         });
+      }
+      /**
+       * LUPA KATA SANDI - Generate token reset password
+       */
+      @Transactional
+      public void forgotPassword(String email) {
+          User user = userRepository.findByEmail(email)
+                  .orElseThrow(() -> new ResourceNotFoundException("User dengan email " + email + " tidak ditemukan"));
+
+          // Tandai token lama yang belum terpakai sebagai terpakai (jika ada)
+          passwordResetTokenRepository.findByUserAndIsUsedFalse(user)
+              .ifPresent(token -> {
+                  token.setIsUsed(true);
+                  passwordResetTokenRepository.save(token);
+              });
+
+          String token = UUID.randomUUID().toString();
+          PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+                  .token(token)
+                  .user(user)
+                  .isUsed(false)
+                  .expiratedAt(LocalDateTime.now().plusMinutes(5)) // kadaluarsa 5 menit
+                  // createdAt ditangani oleh @PrePersist
+                  .build();
+          
+          passwordResetTokenRepository.save(passwordResetToken);
+
+          // Kirim email
+          String resetUrl = frontendUrl + "/reset-password?token=" + token; // URL Frontend
+          emailService.sendSimpleMessage(email, "Permintaan Reset Kata Sandi", "Untuk mereset kata sandi Anda, klik tautan di bawah ini:\n" + resetUrl);
+      }
+
+      /**
+       * RESET KATA SANDI - Ganti password dengan token valid
+       */
+      @Transactional
+      public void resetPassword(String token, String newPassword) {
+          PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                  .orElseThrow(() -> new ResourceNotFoundException("Token tidak valid atau sudah kadaluarsa"));
+
+          if (resetToken.getIsUsed()) {
+                  throw new BusinessException("Token sudah pernah digunakan");
+          }
+
+          if (LocalDateTime.now().isAfter(resetToken.getExpiratedAt())) {
+                  throw new BusinessException("Token telah kadaluarsa");
+          }
+
+          User user = resetToken.getUser();
+          user.setPassword(passwordEncoder.encode(newPassword));
+          userRepository.save(user);
+
+          // Tandai token sebagai sudah terpakai
+          resetToken.setIsUsed(true);
+          passwordResetTokenRepository.save(resetToken);
       }
 }
