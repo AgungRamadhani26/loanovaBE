@@ -1,12 +1,16 @@
 package com.example.loanova.service;
 
 import com.example.loanova.dto.request.LoginRequest;
+import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
+import com.example.loanova.dto.response.RegisterResponse;
 import com.example.loanova.entity.RefreshToken;
 import com.example.loanova.entity.Role;
 import com.example.loanova.entity.User;
 import com.example.loanova.exception.BusinessException;
+import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.repository.RefreshTokenRepository;
+import com.example.loanova.repository.RoleRepository;
 import com.example.loanova.repository.UserRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,10 +20,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
@@ -42,8 +49,10 @@ public class AuthService implements UserDetailsService {
 
       private final UserRepository userRepository;
       private final RefreshTokenRepository refreshTokenRepository;
+      private final RoleRepository roleRepository;
       private final JwtService jwtService;
       private final AuthenticationManager authenticationManager;
+      private final PasswordEncoder passwordEncoder;
 
       /**
        * Constructor dengan manual injection
@@ -54,12 +63,68 @@ public class AuthService implements UserDetailsService {
       public AuthService(
                   UserRepository userRepository,
                   RefreshTokenRepository refreshTokenRepository,
+                  RoleRepository roleRepository,
                   JwtService jwtService,
-                  @Lazy AuthenticationManager authenticationManager) {
+                  @Lazy AuthenticationManager authenticationManager,
+                  PasswordEncoder passwordEncoder) {
             this.userRepository = userRepository;
             this.refreshTokenRepository = refreshTokenRepository;
+            this.roleRepository = roleRepository;
             this.jwtService = jwtService;
             this.authenticationManager = authenticationManager;
+            this.passwordEncoder = passwordEncoder;
+      }
+
+      /**
+       * REGISTER CUSTOMER - Handle pendaftaran user baru dengan role CUSTOMER
+       * 
+       * @param request RegisterRequest dengan username, email, dan password
+       * @return RegisterResponse dengan info user yang berhasil didaftarkan
+       */
+      @Transactional
+      public RegisterResponse register(RegisterRequest request) {
+            // STEP 1: Validate keunikan username & email (Style:
+            // DuplicateResourceException)
+            if (userRepository.existsByUsername(request.getUsername())) {
+                  throw new DuplicateResourceException("Username sudah digunakan, gunakan username lain");
+            }
+            if (userRepository.existsByEmail(request.getEmail())) {
+                  throw new DuplicateResourceException("Email sudah digunakan, gunakan email lain");
+            }
+
+            // STEP 2: Ambil role CUSTOMER
+            Role customerRole = roleRepository.findByRoleName("CUSTOMER")
+                        .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
+
+            // STEP 3: Create User entity
+            User user = User.builder()
+                        .username(request.getUsername())
+                        .email(request.getEmail())
+                        .password(passwordEncoder.encode(request.getPassword()))
+                        .isActive(true)
+                        .roles(new HashSet<>(Collections.singletonList(customerRole)))
+                        .build();
+
+            // STEP 4: Save to database
+            User savedUser = userRepository.save(user);
+
+            // STEP 5: Return mapped response
+            return toRegisterResponse(savedUser);
+      }
+
+      /**
+       * Mapper helper - Convert User entity ke RegisterResponse
+       */
+      private RegisterResponse toRegisterResponse(User user) {
+            return RegisterResponse.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .email(user.getEmail())
+                        .isActive(user.getIsActive())
+                        .roles(user.getRoles().stream()
+                                    .map(Role::getRoleName)
+                                    .collect(Collectors.toSet()))
+                        .build();
       }
 
       /**
@@ -235,8 +300,10 @@ public class AuthService implements UserDetailsService {
             String newRefreshTokenString = jwtService.generateRefreshToken(userDetails);
 
             // STEP 8: Update refresh token di database (Revoke yang lama)
-            // Audit Style: Mark yang lama sebagai revoked, simpan yang baru (atau update row)
-            // Di sini kita update row yang sama tapi mark revoked dulu sebagai histori (opsional)
+            // Audit Style: Mark yang lama sebagai revoked, simpan yang baru (atau update
+            // row)
+            // Di sini kita update row yang sama tapi mark revoked dulu sebagai histori
+            // (opsional)
             // Untuk simplisitas saat ini kita update & reset revokedAt jika ada
             refreshToken.setToken(newRefreshTokenString);
             refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7));
@@ -262,7 +329,8 @@ public class AuthService implements UserDetailsService {
        * 1. Blacklist access token di Redis (stateless)
        * 2. Hapus refresh token di database (stateful)
        * 
-       * @param accessToken Access token dari header (setelah dipotong 'Bearer ')
+       * @param accessToken        Access token dari header (setelah dipotong 'Bearer
+       *                           ')
        * @param refreshTokenString Refresh token dari body
        */
       @Transactional

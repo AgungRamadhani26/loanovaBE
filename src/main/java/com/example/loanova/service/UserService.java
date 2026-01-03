@@ -99,7 +99,7 @@ public class UserService {
         }
 
         /* Mengupdate data user */
-        @CacheEvict(value = {"user", "users"}, key = "#id", allEntries = true)
+        @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
         public UserResponse updateUser(Long id, UserUpdateRequest request) {
                 User user = userRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -142,7 +142,7 @@ public class UserService {
         }
 
         /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
-        @CacheEvict(value = {"user", "users"}, key = "#id", allEntries = true)
+        @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
         public void deleteUser(Long id) {
                 User user = userRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(

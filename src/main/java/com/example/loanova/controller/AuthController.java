@@ -3,7 +3,9 @@ package com.example.loanova.controller;
 import com.example.loanova.base.ApiResponse;
 import com.example.loanova.dto.request.LoginRequest;
 import com.example.loanova.dto.request.RefreshTokenRequest;
+import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
+import com.example.loanova.dto.response.RegisterResponse;
 import com.example.loanova.service.AuthService;
 import com.example.loanova.util.ResponseUtil;
 import jakarta.validation.Valid;
@@ -18,6 +20,22 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
    private final AuthService authService;
+
+   /**
+    * REGISTER ENDPOINT
+    * 
+    * Endpoint untuk pendaftaran customer baru
+    * 
+    * Request:
+    * POST /api/auth/register
+    * Body: { "username": "...", "email": "...", "password": "..." }
+    */
+   @PostMapping("/register")
+   public ResponseEntity<ApiResponse<RegisterResponse>> register(
+         @Valid @RequestBody RegisterRequest request) {
+      RegisterResponse registerResponse = authService.register(request);
+      return ResponseUtil.success(registerResponse, "Pendaftaran berhasil", HttpStatus.CREATED);
+   }
 
    /**
     * LOGIN ENDPOINT

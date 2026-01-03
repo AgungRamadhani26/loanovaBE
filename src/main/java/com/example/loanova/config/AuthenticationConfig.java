@@ -26,18 +26,8 @@ public class AuthenticationConfig {
    // AuthService implements UserDetailsService
    // Dipakai untuk load user dari database saat authentication
    private final AuthService authService;
+   private final PasswordEncoder passwordEncoder;
 
-   /**
-    * PASSWORD ENCODER - Untuk encrypt dan validate password
-    * 
-    * BCrypt adalah algoritma hashing yang secure untuk password
-    * Saat register: password di-hash pakai BCrypt sebelum disimpan ke DB
-    * Saat login: password input di-compare dengan hash di DB
-    */
-   @Bean
-   public PasswordEncoder passwordEncoder() {
-      return new BCryptPasswordEncoder();
-   }
 
    /**
     * AUTHENTICATION PROVIDER - Yang validate username & password saat login
@@ -51,7 +41,7 @@ public class AuthenticationConfig {
    public AuthenticationProvider authenticationProvider() {
       // Constructor injection untuk Spring Security 7.0.2+
       DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(authService);
-      authProvider.setPasswordEncoder(passwordEncoder());
+      authProvider.setPasswordEncoder(passwordEncoder);
       return authProvider;
    }
 }
