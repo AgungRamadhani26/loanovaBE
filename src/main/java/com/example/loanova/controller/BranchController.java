@@ -111,4 +111,14 @@ public class BranchController {
         branchService.deleteBranch(id);
         return ResponseUtil.ok(null, "Berhasil menghapus branch");
     }
+
+    /**
+     * RESTORE BRANCH
+     */
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<ApiResponse<BranchResponse>> restoreBranch(@PathVariable Long id) {
+        BranchResponse branch = branchService.restoreBranch(id);
+        return ResponseUtil.ok(branch, "Berhasil me-restore branch");
+    }
 }

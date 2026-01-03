@@ -35,17 +35,52 @@ public class BranchService {
     public BranchResponse createBranch(BranchRequest request) {
         /*
          * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
-         * terdaftar pada sistem
+         * terdaftar pada sistem (Active)
          */
         if (branchRepository.existsByBranchCode(request.getBranchCode())) {
             throw new DuplicateResourceException(
                     "Branch code " + request.getBranchCode() + " sudah digunakan");
         }
+
+        /*
+         * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
+         * terdaftar pada sistem (Deleted/Any Status)
+         */
+        if (branchRepository.existsByBranchCodeAnyStatus(request.getBranchCode())) {
+            throw new DuplicateResourceException(
+                    "Branch code " + request.getBranchCode() + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
+        }
+
+        /*
+         * Pengecekan Branch Name (Active)
+         */
+        if (branchRepository.existsByBranchName(request.getBranchName())) {
+             throw new DuplicateResourceException(
+                    "Branch name " + request.getBranchName() + " sudah digunakan");
+        }
+        
+        /*
+         * Pengecekan Branch Name (Deleted/Any Status)
+         */
+        if (branchRepository.existsByBranchNameAnyStatus(request.getBranchName())) {
+            throw new DuplicateResourceException(
+                    "Branch name " + request.getBranchName() + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
+        }
+
         Branch branch = Branch.builder()
                 .branchCode(request.getBranchCode())
                 .branchName(request.getBranchName())
                 .address(request.getAddress())
                 .build();
+        return toResponse(branchRepository.save(branch));
+    }
+
+    /* Restore Branch yang sudah di soft-delete */
+    public BranchResponse restoreBranch(Long id) {
+        Branch branch = branchRepository.findByIdIncludeDeleted(id)
+             .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
+        
+        branch.restore();
         return toResponse(branchRepository.save(branch));
     }
 
