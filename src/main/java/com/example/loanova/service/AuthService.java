@@ -1,5 +1,6 @@
 package com.example.loanova.service;
 
+import com.example.loanova.dto.request.ChangePasswordRequest;
 import com.example.loanova.dto.request.LoginRequest;
 import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
@@ -414,5 +415,44 @@ public class AuthService implements UserDetailsService {
           // Tandai token sebagai sudah terpakai
           resetToken.setIsUsed(true);
           passwordResetTokenRepository.save(resetToken);
+      }
+
+      /**
+       * GANTI PASSWORD - Mengubah password user yang sedang login
+       * 
+       * Flow:
+       * 1. Validate password lama
+       * 2. Validate password baru (!= password lama)
+       * 3. Update password
+       * 4. Revoke Refresh Token (Hapus sesi di DB)
+       * 5. Blacklist Access Token (Hapus sesi di Redis/Memory)
+       */
+      @Transactional
+      public void changePassword(String username, String accessToken, ChangePasswordRequest request) {
+          // 1. Ambil user dari database
+          User user = userRepository.findByUsername(username)
+                  .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
+
+          // 2. Cek apakah password lama sesuai
+          if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+              throw new BusinessException("Password lama tidak sesuai");
+          }
+
+          // 3. Cek apakah password baru sama dengan yang lama (Opsional, tapi Good Practice)
+          if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+              throw new BusinessException("Password baru tidak boleh sama dengan password lama");
+          }
+
+          // 4. Update Password baru
+          user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+          userRepository.save(user);
+
+          // 5. SECURITY ACTION: Matikan semua sesi user ini!
+          // Hapus semua refresh token di database (Force Logout dari sisi Server)
+          refreshTokenRepository.deleteByUser(user);
+
+          // 6. SECURITY ACTION: Matikan token yang sedang dipakai!
+          // Blacklist access token ini supaya tidak bisa dipakai request lagi detik ini juga
+          jwtService.blacklistToken(accessToken);
       }
 }

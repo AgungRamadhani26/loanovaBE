@@ -70,9 +70,14 @@ public class SecurityConfig {
                                 // AUTHORIZATION RULES - Define endpoint mana yang public/protected
                                 .authorizeHttpRequests(auth -> auth
                                                 // Public endpoints - Tidak perlu login
-                                                // Semua endpoint di /api/auth/** bisa diakses tanpa token
-                                                // Contoh: /api/auth/login, /api/auth/register
-                                                .requestMatchers("/api/auth/**").permitAll()
+                                                // Hanya endpoint tertentu yang diizinkan tanpa token
+                                                .requestMatchers(
+                                                                "/api/auth/login",
+                                                                "/api/auth/register",
+                                                                "/api/auth/refresh",
+                                                                "/api/auth/forgot-password",
+                                                                "/api/auth/reset-password"
+                                                ).permitAll()
 
                                                 // Protected endpoints - Harus login (punya valid JWT token)
                                                 // Semua endpoint lain butuh authentication

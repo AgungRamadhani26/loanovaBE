@@ -6,6 +6,7 @@ import com.example.loanova.dto.request.RefreshTokenRequest;
 import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
 import com.example.loanova.dto.response.RegisterResponse;
+import com.example.loanova.dto.request.ChangePasswordRequest;
 import com.example.loanova.dto.request.ForgotPasswordRequest;
 import com.example.loanova.dto.request.ResetPasswordRequest;
 import com.example.loanova.service.AuthService;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -140,7 +143,27 @@ public class AuthController {
     */
    @PostMapping("/reset-password")
    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-       authService.resetPassword(request.getToken(), request.getNewPassword());
-       return ResponseUtil.success(null, "Password berhasil diubah", HttpStatus.OK);
+      authService.resetPassword(request.getToken(), request.getNewPassword());
+      return ResponseUtil.success(null, "Password berhasil diubah", HttpStatus.OK);
+   }
+
+   /**
+    * ENDPOINT GANTI PASSWORD (SAAT LOGIN)
+    */
+   @PostMapping("/change-password")
+   public ResponseEntity<ApiResponse<Void>> changePassword(
+         @RequestHeader("Authorization") String authHeader,
+         @Valid @RequestBody ChangePasswordRequest request) {
+      
+      // Ambil username dari context (user yang sedang login)
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      String username = authentication.getName();
+      
+      // Ambil raw access token (hilangkan "Bearer ")
+      String accessToken = authHeader.substring(7);
+
+      authService.changePassword(username, accessToken, request);
+      
+      return ResponseUtil.success(null, "Password berhasil diubah. Silakan login kembali.", HttpStatus.OK);
    }
 }
