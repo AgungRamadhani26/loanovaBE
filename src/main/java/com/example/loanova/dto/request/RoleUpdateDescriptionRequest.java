@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class RoleUpdateDescriptionRequest {
-    @NotBlank(message = "Role description wajib diisi")
-    @Size(max = 255, message = "Role description maksimal 255 karakter")
-    private String roleDescription;
+  @NotBlank(message = "Role description wajib diisi")
+  @Size(max = 255, message = "Role description maksimal 255 karakter")
+  private String roleDescription;
 }

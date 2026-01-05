@@ -15,16 +15,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "Username tidak boleh kosong")
-    @Size(min = 3, max = 50, message = "Username harus antara 3 sampai 50 karakter")
-    private String username;
+  @NotBlank(message = "Username tidak boleh kosong")
+  @Size(min = 3, max = 50, message = "Username harus antara 3 sampai 50 karakter")
+  private String username;
 
-    @NotBlank(message = "Email tidak boleh kosong")
-    @Email(message = "Format email tidak valid")
-    @Size(max = 100, message = "Email maksimal 100 karakter")
-    private String email;
+  @NotBlank(message = "Email tidak boleh kosong")
+  @Email(message = "Format email tidak valid")
+  @Size(max = 100, message = "Email maksimal 100 karakter")
+  private String email;
 
-    @NotBlank(message = "Password tidak boleh kosong")
-    @StrongPassword
-    private String password;
+  @NotBlank(message = "Password tidak boleh kosong")
+  @StrongPassword
+  private String password;
 }

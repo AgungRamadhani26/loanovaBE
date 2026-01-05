@@ -8,8 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @EnableCaching
 public class LoanovaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(LoanovaApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(LoanovaApplication.class, args);
+  }
 }

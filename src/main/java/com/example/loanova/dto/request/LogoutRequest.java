@@ -8,21 +8,16 @@ import lombok.NoArgsConstructor;
 
 /**
  * LOGOUT REQUEST DTO
- * 
- * DTO untuk request logout
- * 
- * Flow logout:
- * 1. User click logout button
- * 2. Frontend kirim POST /api/auth/logout dengan:
- * - Access token di header Authorization
- * - Refresh token di request body
- * 3. Backend blacklist both tokens di Redis
- * 4. Token tidak bisa dipakai lagi (rejected di filter)
- * 
- * Kenapa perlu refresh token di body?
- * - Access token ada di header (auto-sent via interceptor)
- * - Refresh token harus dikirim manual dari frontend
- * - Perlu blacklist BOTH tokens untuk security maksimal
+ *
+ * <p>DTO untuk request logout
+ *
+ * <p>Flow logout: 1. User click logout button 2. Frontend kirim POST /api/auth/logout dengan: -
+ * Access token di header Authorization - Refresh token di request body 3. Backend blacklist both
+ * tokens di Redis 4. Token tidak bisa dipakai lagi (rejected di filter)
+ *
+ * <p>Kenapa perlu refresh token di body? - Access token ada di header (auto-sent via interceptor) -
+ * Refresh token harus dikirim manual dari frontend - Perlu blacklist BOTH tokens untuk security
+ * maksimal
  */
 @Data
 @Builder
@@ -30,16 +25,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LogoutRequest {
 
-   /**
-    * Refresh token yang mau di-blacklist
-    * 
-    * Validasi:
-    * - @NotBlank: tidak boleh null, empty, atau whitespace
-    * 
-    * Note:
-    * - Access token diambil dari header Authorization di controller
-    * - Refresh token diambil dari request body ini
-    */
-   @NotBlank(message = "Refresh token tidak boleh kosong")
-   private String refreshToken;
+  /**
+   * Refresh token yang mau di-blacklist
+   *
+   * <p>Validasi: - @NotBlank: tidak boleh null, empty, atau whitespace
+   *
+   * <p>Note: - Access token diambil dari header Authorization di controller - Refresh token diambil
+   * dari request body ini
+   */
+  @NotBlank(message = "Refresh token tidak boleh kosong")
+  private String refreshToken;
 }

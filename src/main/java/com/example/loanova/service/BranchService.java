@@ -6,116 +6,127 @@ import com.example.loanova.entity.Branch;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.BranchRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 @Service
 public class BranchService {
 
-    private final BranchRepository branchRepository;
+  private final BranchRepository branchRepository;
 
-    // Sebenernya tanpa kode dibawah bisa namun kita harus memberikan
-    // anotasi @RequiredArgsConstructor sebelum nama kelas BranchService
-    // ini merupakah anotasi bawaan lombok
-    public BranchService(BranchRepository branchRepository) {
-        this.branchRepository = branchRepository;
+  // Sebenernya tanpa kode dibawah bisa namun kita harus memberikan
+  // anotasi @RequiredArgsConstructor sebelum nama kelas BranchService
+  // ini merupakah anotasi bawaan lombok
+  public BranchService(BranchRepository branchRepository) {
+    this.branchRepository = branchRepository;
+  }
+
+  /*
+   * Mendapatkan semua Branch yang ada di sistem (auto exclude deleted via @Where)
+   */
+  public List<BranchResponse> getAllBranches() {
+    return branchRepository.findAll().stream().map(this::toResponse).toList();
+  }
+
+  /* Menambahkan Branch baru ke dalam sistem */
+  public BranchResponse createBranch(BranchRequest request) {
+    /*
+     * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
+     * terdaftar pada sistem (Active)
+     */
+    if (branchRepository.existsByBranchCode(request.getBranchCode())) {
+      throw new DuplicateResourceException(
+          "Branch code " + request.getBranchCode() + " sudah digunakan");
     }
 
     /*
-     * Mendapatkan semua Branch yang ada di sistem (auto exclude deleted via @Where)
+     * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
+     * terdaftar pada sistem (Deleted/Any Status)
      */
-    public List<BranchResponse> getAllBranches() {
-        return branchRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    /* Menambahkan Branch baru ke dalam sistem */
-    public BranchResponse createBranch(BranchRequest request) {
-        /*
-         * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
-         * terdaftar pada sistem (Active)
-         */
-        if (branchRepository.existsByBranchCode(request.getBranchCode())) {
-            throw new DuplicateResourceException(
-                    "Branch code " + request.getBranchCode() + " sudah digunakan");
-        }
-
-        /*
-         * Pengecekan jika data baru mempunyai branchCode yang sama dengan yang sudah
-         * terdaftar pada sistem (Deleted/Any Status)
-         */
-        if (branchRepository.existsByBranchCodeAnyStatus(request.getBranchCode())) {
-            throw new DuplicateResourceException(
-                    "Branch code " + request.getBranchCode() + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
-        }
-
-        /*
-         * Pengecekan Branch Name (Active)
-         */
-        if (branchRepository.existsByBranchName(request.getBranchName())) {
-             throw new DuplicateResourceException(
-                    "Branch name " + request.getBranchName() + " sudah digunakan");
-        }
-        
-        /*
-         * Pengecekan Branch Name (Deleted/Any Status)
-         */
-        if (branchRepository.existsByBranchNameAnyStatus(request.getBranchName())) {
-            throw new DuplicateResourceException(
-                    "Branch name " + request.getBranchName() + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
-        }
-
-        Branch branch = Branch.builder()
-                .branchCode(request.getBranchCode())
-                .branchName(request.getBranchName())
-                .address(request.getAddress())
-                .build();
-        return toResponse(branchRepository.save(branch));
-    }
-
-    /* Restore Branch yang sudah di soft-delete */
-    public BranchResponse restoreBranch(Long id) {
-        Branch branch = branchRepository.findByIdIncludeDeleted(id)
-             .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
-        
-        branch.restore();
-        return toResponse(branchRepository.save(branch));
-    }
-
-    /* Mengupdate data branch */
-    public BranchResponse updateBranch(Long id, BranchRequest request) {
-        Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
-        if (!branch.getBranchCode().equals(request.getBranchCode())
-                && branchRepository.existsByBranchCode(request.getBranchCode())) {
-            throw new DuplicateResourceException(
-                    "Branch code " + request.getBranchCode() + " sudah digunakan");
-        }
-        branch.setBranchCode(request.getBranchCode());
-        branch.setBranchName(request.getBranchName());
-        branch.setAddress(request.getAddress());
-        return toResponse(branchRepository.save(branch));
+    if (branchRepository.existsByBranchCodeAnyStatus(request.getBranchCode())) {
+      throw new DuplicateResourceException(
+          "Branch code "
+              + request.getBranchCode()
+              + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
     }
 
     /*
-     * Soft delete - menandai branch sebagai deleted tanpa menghapus dari database
+     * Pengecekan Branch Name (Active)
      */
-    public void deleteBranch(Long id) {
-        Branch branch = branchRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
-        branch.softDelete();
-        branchRepository.save(branch);
+    if (branchRepository.existsByBranchName(request.getBranchName())) {
+      throw new DuplicateResourceException(
+          "Branch name " + request.getBranchName() + " sudah digunakan");
     }
 
-    /* Method helper untuk membantu mapping Entity ke DTO */
-    private BranchResponse toResponse(Branch branch) {
-        return BranchResponse.builder()
-                .id(branch.getId())
-                .branchCode(branch.getBranchCode())
-                .branchName(branch.getBranchName())
-                .address(branch.getAddress())
-                .build();
+    /*
+     * Pengecekan Branch Name (Deleted/Any Status)
+     */
+    if (branchRepository.existsByBranchNameAnyStatus(request.getBranchName())) {
+      throw new DuplicateResourceException(
+          "Branch name "
+              + request.getBranchName()
+              + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
     }
+
+    Branch branch =
+        Branch.builder()
+            .branchCode(request.getBranchCode())
+            .branchName(request.getBranchName())
+            .address(request.getAddress())
+            .build();
+    return toResponse(branchRepository.save(branch));
+  }
+
+  /* Restore Branch yang sudah di soft-delete */
+  public BranchResponse restoreBranch(Long id) {
+    Branch branch =
+        branchRepository
+            .findByIdIncludeDeleted(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
+
+    branch.restore();
+    return toResponse(branchRepository.save(branch));
+  }
+
+  /* Mengupdate data branch */
+  public BranchResponse updateBranch(Long id, BranchRequest request) {
+    Branch branch =
+        branchRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
+    if (!branch.getBranchCode().equals(request.getBranchCode())
+        && branchRepository.existsByBranchCode(request.getBranchCode())) {
+      throw new DuplicateResourceException(
+          "Branch code " + request.getBranchCode() + " sudah digunakan");
+    }
+    branch.setBranchCode(request.getBranchCode());
+    branch.setBranchName(request.getBranchName());
+    branch.setAddress(request.getAddress());
+    return toResponse(branchRepository.save(branch));
+  }
+
+  /*
+   * Soft delete - menandai branch sebagai deleted tanpa menghapus dari database
+   */
+  public void deleteBranch(Long id) {
+    Branch branch =
+        branchRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
+    branch.softDelete();
+    branchRepository.save(branch);
+  }
+
+  /* Method helper untuk membantu mapping Entity ke DTO */
+  private BranchResponse toResponse(Branch branch) {
+    return BranchResponse.builder()
+        .id(branch.getId())
+        .branchCode(branch.getBranchCode())
+        .branchName(branch.getBranchName())
+        .address(branch.getAddress())
+        .build();
+  }
 }

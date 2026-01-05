@@ -8,21 +8,15 @@ import lombok.NoArgsConstructor;
 
 /**
  * REFRESH TOKEN REQUEST DTO
- * 
- * DTO untuk request refresh token (generate access token baru)
- * 
- * Flow:
- * 1. Access token expired (15 menit)
- * 2. Frontend detect 401 error
- * 3. Frontend call POST /api/auth/refresh dengan refresh token
- * 4. Backend validate refresh token
- * 5. Backend generate access token baru
- * 6. Frontend pakai access token baru untuk request berikutnya
- * 
- * Kenapa perlu refresh token?
- * - Access token lifetime pendek (15 menit) untuk security
- * - Refresh token lifetime panjang (7 hari) untuk UX
- * - User tidak perlu login ulang setiap 15 menit
+ *
+ * <p>DTO untuk request refresh token (generate access token baru)
+ *
+ * <p>Flow: 1. Access token expired (15 menit) 2. Frontend detect 401 error 3. Frontend call POST
+ * /api/auth/refresh dengan refresh token 4. Backend validate refresh token 5. Backend generate
+ * access token baru 6. Frontend pakai access token baru untuk request berikutnya
+ *
+ * <p>Kenapa perlu refresh token? - Access token lifetime pendek (15 menit) untuk security - Refresh
+ * token lifetime panjang (7 hari) untuk UX - User tidak perlu login ulang setiap 15 menit
  */
 @Data
 @Builder
@@ -30,12 +24,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RefreshTokenRequest {
 
-   /**
-    * Refresh token dari login response
-    * 
-    * Validasi:
-    * - @NotBlank: tidak boleh null, empty, atau whitespace
-    */
-   @NotBlank(message = "Refresh token tidak boleh kosong")
-   private String refreshToken;
+  /**
+   * Refresh token dari login response
+   *
+   * <p>Validasi: - @NotBlank: tidak boleh null, empty, atau whitespace
+   */
+  @NotBlank(message = "Refresh token tidak boleh kosong")
+  private String refreshToken;
 }
