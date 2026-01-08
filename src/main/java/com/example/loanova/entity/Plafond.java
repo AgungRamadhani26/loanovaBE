@@ -6,7 +6,8 @@ import lombok.*;
 
 /**
  * PLAFOND ENTITY
- * Represents loan ceiling packages with their respective interest rates and tenors.
+ * Merepresentasikan paket plafon pinjaman beserta suku bunga dan tenornya.
+ * Meng-extend BaseEntity untuk mendapatkan fungsionalitas audit dan soft delete.
  */
 @Entity
 @Table(name = "plafonds")
@@ -18,7 +19,7 @@ import lombok.*;
 public class Plafond extends BaseEntity {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
-    private String name;
+    private String name; // Nama paket plafon (misal: "Gold")
 
     @Column(name = "description", nullable = false)
     private String description;
