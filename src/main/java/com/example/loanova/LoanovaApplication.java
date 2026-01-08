@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
 @EnableCaching
+// Loan Oriented Analytics & Verification App
 public class LoanovaApplication {
 
   public static void main(String[] args) {

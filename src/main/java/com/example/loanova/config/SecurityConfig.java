@@ -71,7 +71,8 @@ public class SecurityConfig {
                         "/api/auth/register",
                         "/api/auth/refresh",
                         "/api/auth/forgot-password",
-                        "/api/auth/reset-password")
+                        "/api/auth/reset-password",
+                        "/uploads/**") // Allow public access to uploaded files
                     .permitAll()
 
                     // Protected endpoints - Harus login (punya valid JWT token)
