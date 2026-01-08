@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * PLAFOND SERVICE
- * Layer bisnis untuk mengelola data plafond pinjaman.
- * Menangani logika validasi duplikasi, soft delete, dan pemulihan data.
+ * PLAFOND SERVICE Layer bisnis untuk mengelola data plafond pinjaman. Menangani logika validasi
+ * duplikasi, soft delete, dan pemulihan data.
  */
 @Service
 @RequiredArgsConstructor
@@ -36,14 +35,15 @@ public class PlafondService {
             () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
   }
 
-  /** 
-   * Menambahkan plafond baru.
-   * Melakukan pengecekan duplikasi nama baik pada data aktif maupun yang sudah dihapus.
+  /**
+   * Menambahkan plafond baru. Melakukan pengecekan duplikasi nama baik pada data aktif maupun yang
+   * sudah dihapus.
    */
   @Transactional
   public PlafondResponse createPlafond(PlafondRequest request) {
     if (plafondRepository.existsByName(request.getName())) {
-      throw new DuplicateResourceException("Nama plafond " + request.getName() + " sudah digunakan");
+      throw new DuplicateResourceException(
+          "Nama plafond " + request.getName() + " sudah digunakan");
     }
 
     if (plafondRepository.existsByNameAnyStatus(request.getName())) {
@@ -66,9 +66,9 @@ public class PlafondService {
     return toResponse(plafondRepository.save(plafond));
   }
 
-  /** 
-   * Mengupdate data plafond yang sudah ada.
-   * Memastikan nama baru tidak bentrok dengan plafond lain yang sedang aktif.
+  /**
+   * Mengupdate data plafond yang sudah ada. Memastikan nama baru tidak bentrok dengan plafond lain
+   * yang sedang aktif.
    */
   @Transactional
   public PlafondResponse updatePlafond(Long id, PlafondRequest request) {
@@ -76,11 +76,13 @@ public class PlafondService {
         plafondRepository
             .findById(id)
             .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+                () ->
+                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
 
     if (!plafond.getName().equalsIgnoreCase(request.getName())
         && plafondRepository.existsByName(request.getName())) {
-      throw new DuplicateResourceException("Nama plafond " + request.getName() + " sudah digunakan");
+      throw new DuplicateResourceException(
+          "Nama plafond " + request.getName() + " sudah digunakan");
     }
 
     plafond.setName(request.getName());
@@ -100,7 +102,8 @@ public class PlafondService {
         plafondRepository
             .findById(id)
             .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+                () ->
+                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
     plafond.softDelete();
     plafondRepository.save(plafond);
   }
@@ -112,7 +115,8 @@ public class PlafondService {
         plafondRepository
             .findByIdIncludeDeleted(id)
             .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+                () ->
+                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
 
     plafond.restore();
     return toResponse(plafondRepository.save(plafond));

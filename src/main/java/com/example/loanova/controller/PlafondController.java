@@ -13,10 +13,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * PLAFOND CONTROLLER
- * REST API untuk manajemen plafon pinjaman.
- * 
+ * PLAFOND CONTROLLER REST API untuk manajemen plafon pinjaman.
+ *
  * <p>Base URL: /api/plafonds
+ *
  * <p>Otorisasi: Hanya dapat diakses oleh SUPERADMIN.
  */
 @RestController
@@ -51,8 +51,9 @@ public class PlafondController {
     return ResponseUtil.created(plafond, "Berhasil membuat plafond baru");
   }
 
-  /** 
+  /**
    * MENGUPDATE DATA PLAFOND
+   *
    * @param id ID plafond yang akan diupdate
    * @param request Data baru plafond
    * @return Data plafond yang telah berhasil diupdate
@@ -65,9 +66,9 @@ public class PlafondController {
     return ResponseUtil.ok(plafond, "Berhasil memperbarui data plafond");
   }
 
-  /** 
-   * MENGHAPUS PLAFOND (SOFT DELETE)
-   * Menandai data sebagai terhapus tanpa menghilangkannya dari database.
+  /**
+   * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa menghilangkannya dari
+   * database.
    */
   @PreAuthorize("hasRole('SUPERADMIN')")
   @DeleteMapping("/{id}")
@@ -76,9 +77,8 @@ public class PlafondController {
     return ResponseUtil.ok(null, "Berhasil menghapus plafond");
   }
 
-  /** 
-   * MEMULIHKAN PLAFOND (RESTORE)
-   * Mengaktifkan kembali data yang sebelumnya telah di-soft delete.
+  /**
+   * MEMULIHKAN PLAFOND (RESTORE) Mengaktifkan kembali data yang sebelumnya telah di-soft delete.
    */
   @PreAuthorize("hasRole('SUPERADMIN')")
   @PutMapping("/{id}/restore")

@@ -11,7 +11,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
@@ -19,8 +18,10 @@ public class GlobalExceptionHandler {
 
   /* Untuk exception jika ukuran file melebihi batas */
   @ExceptionHandler(MaxUploadSizeExceededException.class)
-  public ResponseEntity<ApiResponse<Object>> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
-    return ResponseUtil.error(HttpStatus.BAD_REQUEST, "Ukuran file terlalu besar. Maksimal 3MB per file.");
+  public ResponseEntity<ApiResponse<Object>> handleMaxUploadSize(
+      MaxUploadSizeExceededException ex) {
+    return ResponseUtil.error(
+        HttpStatus.BAD_REQUEST, "Ukuran file terlalu besar. Maksimal 3MB per file.");
   }
 
   /* Untuk exception jika data tidak ditemukan 404 */
@@ -50,7 +51,8 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(BusinessException.class)
   public ResponseEntity<ApiResponse<Object>> handleBusiness(BusinessException ex) {
     if (ex.getErrors() != null && !ex.getErrors().isEmpty()) {
-      return ResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage(), Map.of("errors", ex.getErrors()));
+      return ResponseUtil.error(
+          HttpStatus.BAD_REQUEST, ex.getMessage(), Map.of("errors", ex.getErrors()));
     }
     return ResponseUtil.error(HttpStatus.BAD_REQUEST, ex.getMessage());
   }
