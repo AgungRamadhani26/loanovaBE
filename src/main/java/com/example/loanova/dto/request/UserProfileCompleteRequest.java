@@ -13,7 +13,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * USER PROFILE COMPLETE REQUEST - DTO khusus untuk pendaftaran/pengisian profil pertama kali. Semua
+ * USER PROFILE COMPLETE REQUEST - DTO khusus untuk pendaftaran/pengisian profil
+ * pertama kali. Semua
  * field data pribadi dan foto bersifat WAJIB.
  */
 @Data
@@ -41,7 +42,6 @@ public class UserProfileCompleteRequest {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate birthDate;
 
-  @NotBlank(message = "Nomor NPWP wajib diisi")
   @Size(max = 16, message = "Nomor NPWP maksimal 16 karakter")
   private String npwpNumber;
 
@@ -51,6 +51,6 @@ public class UserProfileCompleteRequest {
   @ValidFile(message = "Foto profil wajib diunggah", required = true)
   private MultipartFile profilePhoto;
 
-  @ValidFile(message = "Foto NPWP wajib diunggah", required = true)
+  @ValidFile(required = false)
   private MultipartFile npwpPhoto;
 }

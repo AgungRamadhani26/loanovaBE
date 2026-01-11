@@ -41,7 +41,6 @@ public class UserProfileUpdateRequest {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate birthDate;
 
-  @NotBlank(message = "Nomor NPWP wajib diisi")
   @Size(max = 16, message = "Nomor NPWP maksimal 16 karakter")
   private String npwpNumber;
 

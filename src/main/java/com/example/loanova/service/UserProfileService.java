@@ -28,10 +28,9 @@ public class UserProfileService {
   @Transactional
   public UserProfileResponse completeProfile(String username, UserProfileCompleteRequest request) {
     // 1. Ambil data User yang sedang login
-    User user =
-        userRepository
-            .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+    User user = userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
 
     // 2. Pastikan user belum memiliki profil
     if (userProfileRepository.findByUser(user).isPresent()) {
@@ -46,22 +45,24 @@ public class UserProfileService {
       // 4. Simpan file-file foto
       String ktpPath = fileStorageUtil.saveFile(request.getKtpPhoto(), "ktp");
       String profilePath = fileStorageUtil.saveFile(request.getProfilePhoto(), "profiles");
-      String npwpPath = fileStorageUtil.saveFile(request.getNpwpPhoto(), "npwp");
+      String npwpPath = null;
+      if (request.getNpwpPhoto() != null && !request.getNpwpPhoto().isEmpty()) {
+        npwpPath = fileStorageUtil.saveFile(request.getNpwpPhoto(), "npwp");
+      }
 
       // 5. Buat entity UserProfile
-      UserProfile userProfile =
-          UserProfile.builder()
-              .user(user)
-              .fullName(request.getFullName())
-              .phoneNumber(request.getPhoneNumber())
-              .userAddress(request.getUserAddress())
-              .nik(request.getNik())
-              .birthDate(request.getBirthDate())
-              .npwpNumber(request.getNpwpNumber())
-              .ktpPhoto(ktpPath)
-              .profilePhoto(profilePath)
-              .npwpPhoto(npwpPath)
-              .build();
+      UserProfile userProfile = UserProfile.builder()
+          .user(user)
+          .fullName(request.getFullName())
+          .phoneNumber(request.getPhoneNumber())
+          .userAddress(request.getUserAddress())
+          .nik(request.getNik())
+          .birthDate(request.getBirthDate())
+          .npwpNumber(request.getNpwpNumber())
+          .ktpPhoto(ktpPath)
+          .profilePhoto(profilePath)
+          .npwpPhoto(npwpPath)
+          .build();
 
       UserProfile savedProfile = userProfileRepository.save(userProfile);
       return toResponse(savedProfile);
@@ -74,18 +75,15 @@ public class UserProfileService {
   /** UPDATE PROFIL - Untuk memperbarui data profil yang ada. */
   @Transactional
   public UserProfileResponse updateProfile(String username, UserProfileUpdateRequest request) {
-    User user =
-        userRepository
-            .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+    User user = userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
 
-    UserProfile userProfile =
-        userProfileRepository
-            .findByUser(user)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException(
-                        "Profil belum dilengkapi. Silakan lengkapi profil terlebih dahulu."));
+    UserProfile userProfile = userProfileRepository
+        .findByUser(user)
+        .orElseThrow(
+            () -> new ResourceNotFoundException(
+                "Profil belum dilengkapi. Silakan lengkapi profil terlebih dahulu."));
 
     // Validasi keunikan data (kecuali data milik user sendiri)
     validateUniqueness(
@@ -113,8 +111,10 @@ public class UserProfileService {
             fileStorageUtil.saveFile(request.getProfilePhoto(), "profiles"));
       }
       if (request.getNpwpPhoto() != null && !request.getNpwpPhoto().isEmpty()) {
-        // Hapus file lama sebelum save file baru
-        fileStorageUtil.deleteFile(userProfile.getNpwpPhoto());
+        // Hapus file lama sebelum save file baru (jika ada)
+        if (userProfile.getNpwpPhoto() != null) {
+          fileStorageUtil.deleteFile(userProfile.getNpwpPhoto());
+        }
         userProfile.setNpwpPhoto(fileStorageUtil.saveFile(request.getNpwpPhoto(), "npwp"));
       }
 
@@ -129,15 +129,13 @@ public class UserProfileService {
   /** AMBIL PROFIL SAYA - Mendapatkan data profil user yang sedang login. */
   @Transactional(readOnly = true)
   public UserProfileResponse getMyProfile(String username) {
-    User user =
-        userRepository
-            .findByUsername(username)
-            .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+    User user = userRepository
+        .findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
 
-    UserProfile userProfile =
-        userProfileRepository
-            .findByUser(user)
-            .orElseThrow(() -> new ResourceNotFoundException("Profil belum dilengkapi"));
+    UserProfile userProfile = userProfileRepository
+        .findByUser(user)
+        .orElseThrow(() -> new ResourceNotFoundException("Profil belum dilengkapi"));
 
     return toResponse(userProfile);
   }
@@ -165,15 +163,17 @@ public class UserProfileService {
               }
             });
 
-    // Check NPWP
-    userProfileRepository
-        .findByNpwpNumber(npwpNumber)
-        .ifPresent(
-            existing -> {
-              if (currentProfileId == null || !existing.getId().equals(currentProfileId)) {
-                throw new BusinessException("Nomor NPWP sudah digunakan oleh pengguna lain");
-              }
-            });
+    // Check NPWP (skip jika null atau kosong)
+    if (npwpNumber != null && !npwpNumber.trim().isEmpty()) {
+      userProfileRepository
+          .findByNpwpNumber(npwpNumber)
+          .ifPresent(
+              existing -> {
+                if (currentProfileId == null || !existing.getId().equals(currentProfileId)) {
+                  throw new BusinessException("Nomor NPWP sudah digunakan oleh pengguna lain");
+                }
+              });
+    }
   }
 
   /** Mapper Entity to Response DTO. */

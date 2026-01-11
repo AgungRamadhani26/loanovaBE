@@ -43,7 +43,7 @@ public class UserProfile {
   @Column(name = "birth_date", nullable = false)
   private LocalDate birthDate;
 
-  @Column(name = "npwp_number", nullable = false, unique = true, length = 16)
+  @Column(name = "npwp_number", nullable = true, unique = true, length = 16)
   private String npwpNumber;
 
   @Column(name = "ktp_photo", nullable = false, length = 255)
@@ -52,7 +52,7 @@ public class UserProfile {
   @Column(name = "profile_photo", nullable = false, length = 255)
   private String profilePhoto;
 
-  @Column(name = "npwp_photo", nullable = false, length = 255)
+  @Column(name = "npwp_photo", nullable = true, length = 255)
   private String npwpPhoto;
 
   @Column(name = "created_at", updatable = false)
