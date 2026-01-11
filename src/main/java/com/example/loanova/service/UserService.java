@@ -53,11 +53,10 @@ public class UserService {
    */
   @Cacheable(value = "user", key = "#id")
   public UserResponse getUserById(Long id) {
-    User user =
-        userRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user = userRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
     return toResponse(user);
   }
 
@@ -72,47 +71,48 @@ public class UserService {
       throw new DuplicateResourceException("Email sudah digunakan");
     }
     // Ambil roles
-    Set<Role> roles =
-        roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
+    Set<Role> roles = roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
-    // Cek apakah CUSTOMER
-    boolean isCustomer = roles.stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+    // Cek apakah ada role MARKETING atau BRANCH_MANAGER
+    boolean requiresBranch = roles.stream()
+        .anyMatch(
+            r -> r.getRoleName().equalsIgnoreCase("MARKETING")
+                || r.getRoleName().equalsIgnoreCase("BRANCH_MANAGER"));
     Branch branch = null;
-    if (!isCustomer) {
+    if (requiresBranch) {
       if (request.getBranchId() == null) {
-        throw new BusinessException("Branch wajib diisi untuk role selain CUSTOMER");
+        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCH_MANAGER");
       }
-      branch =
-          branchRepository
-              .findById(request.getBranchId())
-              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch = branchRepository
+          .findById(request.getBranchId())
+          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+    } else if (request.getBranchId() != null) {
+      // Jika branch diisi untuk role lain (opsional), validasi apakah exist
+      branch = branchRepository
+          .findById(request.getBranchId())
+          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     }
-    User user =
-        User.builder()
-            .username(request.getUsername())
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .branch(branch)
-            .roles(roles)
-            .isActive(request.getIsActive())
-            .build();
+    User user = User.builder()
+        .username(request.getUsername())
+        .email(request.getEmail())
+        .password(passwordEncoder.encode(request.getPassword()))
+        .branch(branch)
+        .roles(roles)
+        .isActive(request.getIsActive())
+        .build();
     return toResponse(userRepository.save(user));
   }
 
   /* Mengupdate data user */
   @Transactional
-  @CacheEvict(
-      value = {"user", "users"},
-      key = "#id",
-      allEntries = true)
+  @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
   public UserResponse updateUser(Long id, UserUpdateRequest request) {
-    User user =
-        userRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user = userRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
     // Cek duplikasi username kecuali diri sendiri
     if (!user.getUsername().equals(request.getUsername())
         && userRepository.existsByUsername(request.getUsername())) {
@@ -125,21 +125,28 @@ public class UserService {
       throw new DuplicateResourceException("Email sudah digunakan");
     }
     // Ambil roles
-    Set<Role> roles =
-        roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
+    Set<Role> roles = roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
-    boolean isCustomer = roles.stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+    // Cek apakah ada role MARKETING atau BRANCH_MANAGER
+    boolean requiresBranch = roles.stream()
+        .anyMatch(
+            r -> r.getRoleName().equalsIgnoreCase("MARKETING")
+                || r.getRoleName().equalsIgnoreCase("BRANCH_MANAGER"));
     Branch branch = null;
-    if (!isCustomer) {
+    if (requiresBranch) {
       if (request.getBranchId() == null) {
-        throw new BusinessException("Branch wajib diisi untuk role selain CUSTOMER");
+        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCH_MANAGER");
       }
-      branch =
-          branchRepository
-              .findById(request.getBranchId())
-              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch = branchRepository
+          .findById(request.getBranchId())
+          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+    } else if (request.getBranchId() != null) {
+      // Jika branch diisi untuk role lain (opsional), validasi apakah exist
+      branch = branchRepository
+          .findById(request.getBranchId())
+          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     }
     // update field tanpa password
     user.setUsername(request.getUsername());
@@ -152,16 +159,12 @@ public class UserService {
 
   /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
   @Transactional
-  @CacheEvict(
-      value = {"user", "users"},
-      key = "#id",
-      allEntries = true)
+  @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
   public void deleteUser(Long id) {
-    User user =
-        userRepository
-            .findById(id)
-            .orElseThrow(
-                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user = userRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
 
     user.softDelete();
     userRepository.save(user);
