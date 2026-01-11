@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.*;
 /**
  * PLAFOND CONTROLLER REST API untuk manajemen plafon pinjaman.
  *
- * <p>Base URL: /api/plafonds
+ * <p>
+ * Base URL: /api/plafonds
  *
- * <p>Otorisasi: Hanya dapat diakses oleh SUPERADMIN.
+ * <p>
+ * Otorisasi: Hanya dapat diakses oleh SUPERADMIN.
  */
 @RestController
 @RequestMapping("/api/plafonds")
@@ -26,7 +28,18 @@ public class PlafondController {
 
   private final PlafondService plafondService;
 
-  /** GET ALL PLAFONDS */
+  /**
+   * GET ALL PLAFONDS (PUBLIC) Endpoint publik untuk melihat daftar plafond tanpa
+   * perlu login.
+   * Berguna untuk landing page atau halaman informasi produk.
+   */
+  @GetMapping("/public")
+  public ResponseEntity<ApiResponse<List<PlafondResponse>>> getPublicPlafonds() {
+    List<PlafondResponse> plafonds = plafondService.getAllPlafonds();
+    return ResponseUtil.ok(plafonds, "Berhasil mengambil daftar plafond");
+  }
+
+  /** GET ALL PLAFONDS (SUPERADMIN) */
   @PreAuthorize("hasRole('SUPERADMIN')")
   @GetMapping
   public ResponseEntity<ApiResponse<List<PlafondResponse>>> getAllPlafonds() {
@@ -54,7 +67,7 @@ public class PlafondController {
   /**
    * MENGUPDATE DATA PLAFOND
    *
-   * @param id ID plafond yang akan diupdate
+   * @param id      ID plafond yang akan diupdate
    * @param request Data baru plafond
    * @return Data plafond yang telah berhasil diupdate
    */
@@ -67,7 +80,8 @@ public class PlafondController {
   }
 
   /**
-   * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa menghilangkannya dari
+   * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa
+   * menghilangkannya dari
    * database.
    */
   @PreAuthorize("hasRole('SUPERADMIN')")
@@ -78,7 +92,8 @@ public class PlafondController {
   }
 
   /**
-   * MEMULIHKAN PLAFOND (RESTORE) Mengaktifkan kembali data yang sebelumnya telah di-soft delete.
+   * MEMULIHKAN PLAFOND (RESTORE) Mengaktifkan kembali data yang sebelumnya telah
+   * di-soft delete.
    */
   @PreAuthorize("hasRole('SUPERADMIN')")
   @PutMapping("/{id}/restore")
