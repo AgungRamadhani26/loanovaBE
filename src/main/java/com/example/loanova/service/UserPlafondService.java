@@ -7,6 +7,7 @@ import com.example.loanova.entity.User;
 import com.example.loanova.entity.UserPlafond;
 import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.ResourceNotFoundException;
+import com.example.loanova.repository.LoanApplicationRepository;
 import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
@@ -24,16 +25,16 @@ public class UserPlafondService {
    private final UserPlafondRepository userPlafondRepository;
    private final UserRepository userRepository;
    private final PlafondRepository plafondRepository;
+   private final LoanApplicationRepository loanApplicationRepository;
 
    /**
-    * ASSIGN PLAFOND KE USER Digunakan oleh SUPERADMIN untuk assign plafond baru ke
-    * user. Logic: 1.
-    * Validasi user dan plafond exist 2. Nonaktifkan plafond lama yang masih aktif
-    * (jika ada) 3.
-    * Create user plafond baru dengan status aktif
+    * ASSIGN PLAFOND KE USER Digunakan oleh BACKOFFICE untuk assign plafond baru ke user. 
+    * TIDAK BISA assign jika user masih ada pengajuan pinjaman yang belum selesai.
+    * Logic: 1. Validasi user dan plafond exist 2. Validasi tidak ada pinjaman aktif 3.
+    * Nonaktifkan plafond lama yang masih aktif (jika ada) 4. Create user plafond baru dengan
+    * status aktif
     *
-    * @param request AssignUserPlafondRequest dengan userId, plafondId, dan
-    *                maxAmount
+    * @param request AssignUserPlafondRequest dengan userId, plafondId, dan maxAmount
     * @return UserPlafondResponse dengan data plafond yang baru di-assign
     */
    @Transactional
@@ -45,14 +46,20 @@ public class UserPlafondService {
                   () -> new ResourceNotFoundException(
                         "User dengan ID " + request.getUserId() + " tidak ditemukan"));
 
-      // 2. Validasi plafond exist
+      // 2. Validasi tidak ada pinjaman yang sedang diproses
+      if (loanApplicationRepository.existsActiveApplicationByUser(user)) {
+         throw new BusinessException(
+               "Tidak dapat assign plafond baru. User masih memiliki pengajuan pinjaman yang belum selesai diproses");
+      }
+
+      // 3. Validasi plafond exist
       Plafond plafond = plafondRepository
             .findById(request.getPlafondId())
             .orElseThrow(
                   () -> new ResourceNotFoundException(
                         "Plafond dengan ID " + request.getPlafondId() + " tidak ditemukan"));
 
-      // 3. Validasi maxAmount tidak melebihi max amount dari plafond
+      // 4. Validasi maxAmount tidak melebihi max amount dari plafond
       if (request.getMaxAmount().compareTo(plafond.getMaxAmount()) > 0) {
          throw new BusinessException(
                "Max amount yang diberikan ("
@@ -64,7 +71,7 @@ public class UserPlafondService {
                      + ")");
       }
 
-      // 4. Nonaktifkan plafond lama yang masih aktif (jika ada)
+      // 5. Nonaktifkan plafond lama yang masih aktif (jika ada)
       userPlafondRepository
             .findByUserAndIsActive(user, true)
             .ifPresent(

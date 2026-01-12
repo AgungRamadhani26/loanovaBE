@@ -93,9 +93,6 @@ public class LoanApplication {
    @Column(name = "ktp_photo_snapshot", nullable = false, length = 255)
    private String ktpPhotoSnapshot;
 
-   @Column(name = "spouse_ktp_photo", length = 255)
-   private String spouseKtpPhoto;
-
    @Column(name = "npwp_photo_snapshot", length = 255)
    private String npwpPhotoSnapshot;
 
@@ -104,12 +101,6 @@ public class LoanApplication {
 
    @Column(name = "payslip_photo", nullable = false, length = 255)
    private String payslipPhoto;
-
-   @Column(name = "marriage_certificate_photo", length = 255)
-   private String marriageCertificatePhoto;
-
-   @Column(name = "employee_id_photo", length = 255)
-   private String employeeIdPhoto;
 
    @PrePersist
    protected void onCreate() {

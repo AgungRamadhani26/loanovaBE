@@ -4,13 +4,17 @@ import com.example.loanova.dto.request.UserRequest;
 import com.example.loanova.dto.request.UserUpdateRequest;
 import com.example.loanova.dto.response.UserResponse;
 import com.example.loanova.entity.Branch;
+import com.example.loanova.entity.Plafond;
 import com.example.loanova.entity.Role;
 import com.example.loanova.entity.User;
+import com.example.loanova.entity.UserPlafond;
 import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.BranchRepository;
+import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.RoleRepository;
+import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
 import java.util.List;
 import java.util.Set;
@@ -27,16 +31,22 @@ public class UserService {
   private final UserRepository userRepository;
   private final BranchRepository branchRepository;
   private final RoleRepository roleRepository;
+  private final UserPlafondRepository userPlafondRepository;
+  private final PlafondRepository plafondRepository;
   private final PasswordEncoder passwordEncoder;
 
   public UserService(
       UserRepository userRepository,
       BranchRepository branchRepository,
       RoleRepository roleRepository,
+      UserPlafondRepository userPlafondRepository,
+      PlafondRepository plafondRepository,
       PasswordEncoder passwordEncoder) {
     this.userRepository = userRepository;
     this.branchRepository = branchRepository;
     this.roleRepository = roleRepository;
+    this.userPlafondRepository = userPlafondRepository;
+    this.plafondRepository = plafondRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -102,7 +112,14 @@ public class UserService {
         .roles(roles)
         .isActive(request.getIsActive())
         .build();
-    return toResponse(userRepository.save(user));
+    User savedUser = userRepository.save(user);
+
+    // Auto-assign Bronze plafond jika user memiliki role CUSTOMER
+    if (hasCustomerRole(savedUser)) {
+      createDefaultUserPlafondIfNotExists(savedUser);
+    }
+
+    return toResponse(savedUser);
   }
 
   /* Mengupdate data user */
@@ -148,13 +165,23 @@ public class UserService {
           .findById(request.getBranchId())
           .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     }
+
     // update field tanpa password
     user.setUsername(request.getUsername());
     user.setEmail(request.getEmail());
     user.setRoles(roles);
     user.setBranch(branch);
     user.setIsActive(request.getIsActive());
-    return toResponse(userRepository.save(user));
+
+    User savedUser = userRepository.save(user);
+
+    // Auto-assign Bronze plafond jika user diubah menjadi CUSTOMER dan belum punya
+    // plafond
+    if (hasCustomerRole(savedUser)) {
+      createDefaultUserPlafondIfNotExists(savedUser);
+    }
+
+    return toResponse(savedUser);
   }
 
   /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
@@ -168,6 +195,50 @@ public class UserService {
 
     user.softDelete();
     userRepository.save(user);
+  }
+
+  /**
+   * Helper method untuk cek apakah user memiliki role CUSTOMER
+   */
+  private boolean hasCustomerRole(User user) {
+    return user.getRoles().stream()
+        .anyMatch(role -> role.getRoleName().equalsIgnoreCase("CUSTOMER"));
+  }
+
+  /**
+   * Helper method untuk auto-create default user plafond (Bronze) jika belum ada.
+   * Plafond Bronze dengan ID 3 akan otomatis di-assign ke setiap customer.
+   * Method ini mengecek terlebih dahulu apakah user sudah punya plafond aktif,
+   * jika sudah ada maka tidak membuat yang baru.
+   * 
+   * @param user User yang akan diberi plafond
+   */
+  private void createDefaultUserPlafondIfNotExists(User user) {
+    // Cek apakah user sudah memiliki plafond aktif
+    boolean hasActivePlafond = userPlafondRepository
+        .findByUserAndIsActive(user, true)
+        .isPresent();
+
+    if (hasActivePlafond) {
+      // User sudah punya plafond aktif, skip
+      return;
+    }
+
+    // Ambil plafond Bronze (ID = 3)
+    Plafond bronzePlafond = plafondRepository
+        .findById(3L)
+        .orElseThrow(() -> new BusinessException("Plafond Bronze (ID 3) tidak ditemukan"));
+
+    // Create user plafond dengan max_amount dari Bronze
+    UserPlafond userPlafond = UserPlafond.builder()
+        .user(user)
+        .plafond(bronzePlafond)
+        .maxAmount(bronzePlafond.getMaxAmount())
+        .remainingAmount(bronzePlafond.getMaxAmount()) // Awal sama dengan max_amount
+        .isActive(true)
+        .build();
+
+    userPlafondRepository.save(userPlafond);
   }
 
   /* Method helper untuk membantu mapping Entity ke DTO */

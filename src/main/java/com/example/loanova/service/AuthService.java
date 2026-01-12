@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -107,6 +108,7 @@ public class AuthService implements UserDetailsService {
    * @return RegisterResponse dengan info user yang berhasil didaftarkan
    */
   @Transactional
+  @CacheEvict(value = "users", allEntries = true)
   public RegisterResponse register(RegisterRequest request) {
     // STEP 1: Validate keunikan username & email (Style:
     // DuplicateResourceException)
