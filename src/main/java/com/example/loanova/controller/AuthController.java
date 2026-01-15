@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -93,6 +94,7 @@ public class AuthController {
    * "refreshToken": "..." }
    */
   // Yang bisa logout adalah semua role
+  @PreAuthorize("hasAuthority('AUTH:LOGOUT')")
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<Void>> logout(
       @RequestHeader("Authorization") String authHeader,
@@ -123,6 +125,7 @@ public class AuthController {
 
   /** ENDPOINT GANTI PASSWORD (SAAT LOGIN) */
   // Yang bisa change-password adalah semua role
+  @PreAuthorize("hasAuthority('AUTH:CHANGE_PASSWORD')")
   @PostMapping("/change-password")
   public ResponseEntity<ApiResponse<Void>> changePassword(
       @RequestHeader("Authorization") String authHeader,

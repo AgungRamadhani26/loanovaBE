@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class RoleController {
 
   // GET ALL ROLES
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('ROLE:READ')")
   @GetMapping
   public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
     List<RoleResponse> roles = roleService.getAllRoles();
@@ -29,6 +31,7 @@ public class RoleController {
 
   // CREATE ROLE
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('ROLE:CREATE')")
   @PostMapping
   public ResponseEntity<ApiResponse<RoleResponse>> createRole(
       @Valid @RequestBody RoleRequest request) {
@@ -38,6 +41,7 @@ public class RoleController {
 
   // UPDATE ROLE DESCRIPTION
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('ROLE:UPDATE')")
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<RoleResponse>> updateRoleDescription(
       @PathVariable Long id, @Valid @RequestBody RoleUpdateDescriptionRequest request) {
@@ -47,6 +51,7 @@ public class RoleController {
 
   // DELETE ROLE
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('ROLE:DELETE')")
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
     roleService.deleteRole(id);

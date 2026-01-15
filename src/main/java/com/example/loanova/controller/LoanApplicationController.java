@@ -41,7 +41,7 @@ public class LoanApplicationController {
    */
   // Yang bisa submitLoanApplication hanya CUSTOMER
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('CUSTOMER')")
+  @PreAuthorize("hasAuthority('LOAN:SUBMIT')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> submitLoanApplication(
       Authentication authentication, @Valid @ModelAttribute LoanApplicationRequest request) {
     String username = authentication.getName();
@@ -57,7 +57,7 @@ public class LoanApplicationController {
    */
   // Yang bisa getMyApplications hanya CUSTOMER
   @GetMapping("/my")
-  @PreAuthorize("hasRole('CUSTOMER')")
+  @PreAuthorize("hasAuthority('LOAN:READ_MY')")
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getMyApplications(
       Authentication authentication) {
     String username = authentication.getName();
@@ -74,7 +74,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses getApplicationDetail adalah semua role
   @GetMapping("/{id}")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'MARKETING', 'BRANCHMANAGER', 'BACKOFFICE', 'SUPERADMIN')")
+  @PreAuthorize("hasAuthority('LOAN:DETAILS')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> getApplicationDetail(
       Authentication authentication, @PathVariable Long id) {
     String username = authentication.getName();
@@ -90,7 +90,7 @@ public class LoanApplicationController {
    */
   // Yang bisa getApplicationHistory adalah semua role
   @GetMapping("/{id}/history")
-  @PreAuthorize("hasAnyRole('CUSTOMER', 'MARKETING', 'BRANCHMANAGER', 'BACKOFFICE', 'SUPERADMIN')")
+  @PreAuthorize("hasAuthority('LOAN:HISTORY')")
   public ResponseEntity<ApiResponse<List<ApplicationHistoryResponse>>> getApplicationHistory(
       @PathVariable Long id, Authentication authentication) {
     String username = authentication.getName();
@@ -106,7 +106,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses getPendingApplication hanya MARKETING
   @GetMapping("/pending-review")
-  @PreAuthorize("hasRole('MARKETING')")
+  @PreAuthorize("hasAuthority('LOAN:LIST_PENDING_REVIEW')")
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getPendingApplications(
       Authentication authentication) {
     String username = authentication.getName();
@@ -124,7 +124,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses reviewApplication hanya MARKETING
   @PutMapping("/{id}/review")
-  @PreAuthorize("hasRole('MARKETING')")
+  @PreAuthorize("hasAuthority('LOAN:REVIEW')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> reviewApplication(
       Authentication authentication,
       @PathVariable Long id,
@@ -142,7 +142,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses getWaitingApprovalApplications hanya BRANCHMANAGER
   @GetMapping("/waiting-approval")
-  @PreAuthorize("hasRole('BRANCHMANAGER')")
+  @PreAuthorize("hasAuthority('LOAN:LIST_WAITING_APPROVAL')")
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getWaitingApprovalApplications(
       Authentication authentication) {
     String username = authentication.getName();
@@ -161,7 +161,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses approveApplication hanya BRANCHMANAGER
   @PutMapping("/{id}/approve")
-  @PreAuthorize("hasRole('BRANCHMANAGER')")
+  @PreAuthorize("hasAuthority('LOAN:APPROVE')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> approveApplication(
       Authentication authentication,
       @PathVariable Long id,
@@ -179,7 +179,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses getWaitingDisbursementApplications hanya BACKOFFICE
   @GetMapping("/waiting-disbursement")
-  @PreAuthorize("hasAnyRole('BACKOFFICE', 'SUPERADMIN')")
+  @PreAuthorize("hasAuthority('LOAN:LIST_WAITING_DISBURSE')")
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getWaitingDisbursementApplications() {
     List<LoanApplicationResponse> responses = loanApplicationService.getWaitingDisbursementApplications();
     return ResponseUtil.ok(responses, "Berhasil mengambil daftar pengajuan waiting disbursement");
@@ -194,7 +194,7 @@ public class LoanApplicationController {
    */
   // Yang bisa akses disburseApplication hanya BACKOFFICE
   @PutMapping("/{id}/disburse")
-  @PreAuthorize("hasAnyRole('BACKOFFICE', 'SUPERADMIN')")
+  @PreAuthorize("hasAuthority('LOAN:DISBURSE')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> disburseApplication(
       Authentication authentication, @PathVariable Long id) {
     String username = authentication.getName();

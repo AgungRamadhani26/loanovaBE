@@ -237,7 +237,7 @@ public class LoanApplicationService {
 
             // Customer hanya bisa lihat aplikasi miliknya sendiri
             // Marketing/Branch Manager/Backoffice bisa lihat sesuai akses
-            if (user.getRoles().stream().anyMatch(r -> r.getRoleName().equals("CUSTOMER"))) {
+            if (user.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"))) {
                   if (!application.getUser().getId().equals(user.getId())) {
                         throw new BusinessException("Anda tidak memiliki akses ke aplikasi ini");
                   }
@@ -265,19 +265,19 @@ public class LoanApplicationService {
 
             // 1. Cek SUPERADMIN / BACKOFFICE (Bebas akses)
             if (user.getRoles().stream()
-                        .anyMatch(r -> r.getRoleName().equals("SUPERADMIN") || r.getRoleName().equals("BACKOFFICE"))) {
+                        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN") || r.getRoleName().equalsIgnoreCase("BACKOFFICE"))) {
                   hasAccess = true;
             }
-            // 2. Cek MARKETING / BRANCH_MANAGER (Sesuai branch)
+            // 2. Cek MARKETING / BRANCHMANAGER (Sesuai branch)
             else if (user.getRoles().stream().anyMatch(
-                        r -> r.getRoleName().equals("MARKETING") || r.getRoleName().equals("BRANCH_MANAGER"))) {
+                        r -> r.getRoleName().equalsIgnoreCase("MARKETING") || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"))) {
                   if (user.getBranch() != null &&
                               application.getBranch().getId().equals(user.getBranch().getId())) {
                         hasAccess = true;
                   }
             }
             // 3. Cek CUSTOMER (Hanya punya sendiri)
-            else if (user.getRoles().stream().anyMatch(r -> r.getRoleName().equals("CUSTOMER"))) {
+            else if (user.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"))) {
                   if (application.getUser().getId().equals(user.getId())) {
                         hasAccess = true;
                   }
@@ -455,7 +455,7 @@ public class LoanApplicationService {
                               user,
                               LoanApplicationStatus.WAITING_DISBURSEMENT.name(),
                               request.getComment() != null ? request.getComment() : "Disetujui oleh Branch Manager",
-                              "BRANCH_MANAGER");
+                              "BRANCHMANAGER");
             } else {
                   // Reject -> kembalikan remaining amount
                   application.setStatus(LoanApplicationStatus.REJECTED.name());
@@ -479,7 +479,7 @@ public class LoanApplicationService {
                               user,
                               LoanApplicationStatus.REJECTED.name(),
                               request.getComment(),
-                              "BRANCH_MANAGER");
+                              "BRANCHMANAGER");
             }
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);

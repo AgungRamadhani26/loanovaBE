@@ -42,7 +42,7 @@ public class PlafondController {
 
   /** GET ALL PLAFONDS (SUPERADMIN) */
   // Yang bisa akses getAllPlafonds hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:READ')")
   @GetMapping
   public ResponseEntity<ApiResponse<List<PlafondResponse>>> getAllPlafonds() {
     List<PlafondResponse> plafonds = plafondService.getAllPlafonds();
@@ -51,7 +51,7 @@ public class PlafondController {
 
   /** GET PLAFOND BY ID */
   // Yang bisa akses getPlafondById hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:DETAILS')")
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<PlafondResponse>> getPlafondById(@PathVariable Long id) {
     PlafondResponse plafond = plafondService.getPlafondById(id);
@@ -60,7 +60,7 @@ public class PlafondController {
 
   /** CREATE PLAFOND */
   // Yang bisa akses createPlafond hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:CREATE')")
   @PostMapping
   public ResponseEntity<ApiResponse<PlafondResponse>> createPlafond(
       @Valid @RequestBody PlafondRequest request) {
@@ -76,7 +76,7 @@ public class PlafondController {
    * @return Data plafond yang telah berhasil diupdate
    */
   // Yang bisa akses updatePlafond hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:UPDATE')")
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<PlafondResponse>> updatePlafond(
       @PathVariable Long id, @Valid @RequestBody PlafondRequest request) {
@@ -90,7 +90,7 @@ public class PlafondController {
    * database.
    */
   // Yang bisa akses deletePlafond hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:DELETE')")
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deletePlafond(@PathVariable Long id) {
     plafondService.deletePlafond(id);
@@ -102,7 +102,7 @@ public class PlafondController {
    * di-soft delete.
    */
   // Yang bisa akses restorePlafond hanya SUPERADMIN
-  @PreAuthorize("hasRole('SUPERADMIN')")
+  @PreAuthorize("hasAuthority('PLAFOND:RESTORE')")
   @PutMapping("/{id}/restore")
   public ResponseEntity<ApiResponse<PlafondResponse>> restorePlafond(@PathVariable Long id) {
     PlafondResponse plafond = plafondService.restorePlafond(id);

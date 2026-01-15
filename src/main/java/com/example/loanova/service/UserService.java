@@ -85,15 +85,15 @@ public class UserService {
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
-    // Cek apakah ada role MARKETING atau BRANCH_MANAGER
+    // Cek apakah ada role MARKETING atau BRANCHMANAGER
     boolean requiresBranch = roles.stream()
         .anyMatch(
             r -> r.getRoleName().equalsIgnoreCase("MARKETING")
-                || r.getRoleName().equalsIgnoreCase("BRANCH_MANAGER"));
+                || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
     Branch branch = null;
     if (requiresBranch) {
       if (request.getBranchId() == null) {
-        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCH_MANAGER");
+        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCHMANAGER");
       }
       branch = branchRepository
           .findById(request.getBranchId())
@@ -146,15 +146,15 @@ public class UserService {
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
-    // Cek apakah ada role MARKETING atau BRANCH_MANAGER
+    // Cek apakah ada role MARKETING atau BRANCHMANAGER
     boolean requiresBranch = roles.stream()
         .anyMatch(
             r -> r.getRoleName().equalsIgnoreCase("MARKETING")
-                || r.getRoleName().equalsIgnoreCase("BRANCH_MANAGER"));
+                || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
     Branch branch = null;
     if (requiresBranch) {
       if (request.getBranchId() == null) {
-        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCH_MANAGER");
+        throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCHMANAGER");
       }
       branch = branchRepository
           .findById(request.getBranchId())

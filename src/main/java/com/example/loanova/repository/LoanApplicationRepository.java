@@ -51,7 +51,7 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
   List<LoanApplication> findByUserOrderBySubmittedAtDesc(User user);
 
   /**
-   * Mencari loan application berdasarkan ID dan branch (untuk validasi akses MARKETING/BRANCH_MANAGER).
+   * Mencari loan application berdasarkan ID dan branch (untuk validasi akses MARKETING/BRANCHMANAGER).
    */
   Optional<LoanApplication> findByIdAndBranchId(Long id, Long branchId);
 }

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +22,7 @@ public class UserController {
 
   // GET ALL USERS
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('USER:READ')")
   @GetMapping
   public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
     List<UserResponse> users = userService.getAllUser();
@@ -29,6 +31,7 @@ public class UserController {
 
   // GET USER BY ID
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('USER:DETAILS')")
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
     UserResponse user = userService.getUserById(id);
@@ -37,6 +40,7 @@ public class UserController {
 
   // CREATE USER
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('USER:CREATE')")
   @PostMapping
   public ResponseEntity<ApiResponse<UserResponse>> createUser(
       @Valid @RequestBody UserRequest request) {
@@ -46,6 +50,7 @@ public class UserController {
 
   // UPDATE USER
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('USER:UPDATE')")
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<UserResponse>> updateUser(
       @PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
@@ -55,6 +60,7 @@ public class UserController {
 
   // DELETE USER
   // Yang bisa akses hanya SUPERADMIN
+  @PreAuthorize("hasAuthority('USER:DELETE')")
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
