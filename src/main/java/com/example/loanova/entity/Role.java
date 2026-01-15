@@ -1,6 +1,7 @@
 package com.example.loanova.entity;
 
 import jakarta.persistence.*;
+import java.util.Set;
 import lombok.*;
 
 @Entity
@@ -17,4 +18,11 @@ public class Role extends BaseEntity {
 
   @Column(name = "role_description", nullable = false, length = 255)
   private String roleDescription;
+
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "role_permissions",
+      joinColumns = @JoinColumn(name = "role_id"),
+      inverseJoinColumns = @JoinColumn(name = "permission_id"))
+  private Set<Permission> permissions;
 }
