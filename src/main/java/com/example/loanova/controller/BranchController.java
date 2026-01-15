@@ -39,6 +39,7 @@ public class BranchController {
    *
    * @return List of all branches
    */
+  // Yang bisa getAllBranches adalah semua role
   @PreAuthorize("hasRole('SUPERADMIN')")
   @GetMapping
   public ResponseEntity<ApiResponse<List<BranchResponse>>> getAllBranches() {
@@ -54,6 +55,7 @@ public class BranchController {
    * @param request Branch data (name, address, dll)
    * @return Created branch data
    */
+  // Yang bisa createBranch adalah SUPERADMIN
   @PreAuthorize("hasRole('SUPERADMIN')")
   @PostMapping
   public ResponseEntity<ApiResponse<BranchResponse>> createBranch(
@@ -72,6 +74,7 @@ public class BranchController {
    * @param request Branch data baru
    * @return Updated branch data
    */
+  // Yang bisa updateBranch adalah SUPERADMIN
   @PreAuthorize("hasRole('SUPERADMIN')")
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<BranchResponse>> updateBranch(
@@ -90,6 +93,7 @@ public class BranchController {
    * @param id Branch ID yang mau di-delete
    * @return Success message
    */
+  //yang bisa deleteBranch adalah SUPERADMIN
   @PreAuthorize("hasRole('SUPERADMIN')")
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteBranch(@PathVariable Long id) {
@@ -98,6 +102,7 @@ public class BranchController {
   }
 
   /** RESTORE BRANCH */
+  // Yang bisa restoreBranch adalah SUPERADMIN
   @PreAuthorize("hasRole('SUPERADMIN')")
   @PutMapping("/{id}/restore")
   public ResponseEntity<ApiResponse<BranchResponse>> restoreBranch(@PathVariable Long id) {

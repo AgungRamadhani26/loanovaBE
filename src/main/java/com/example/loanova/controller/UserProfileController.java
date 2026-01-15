@@ -23,6 +23,7 @@ public class UserProfileController {
   private final UserProfileService userProfileService;
 
   /** LENGKAPI PROFIL Khusus role CUSTOMER. Menggunakan multipart/form-data untuk unggahn file. */
+  // Yang bisa akses hanya CUSTOMER
   @PreAuthorize("hasRole('CUSTOMER')")
   @PostMapping(value = "/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<UserProfileResponse>> completeProfile(
@@ -33,6 +34,7 @@ public class UserProfileController {
   }
 
   /** UPDATE PROFIL Memperbarui data profil yang ada. */
+  // Yang bisa akses hanya CUSTOMER
   @PreAuthorize("hasRole('CUSTOMER')")
   @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<ApiResponse<UserProfileResponse>> updateProfile(
@@ -45,6 +47,7 @@ public class UserProfileController {
   /** AMBIL PROFIL SAYA */
   @PreAuthorize("hasRole('CUSTOMER')")
   @GetMapping("/me")
+  // Yang bisa akses hanya CUSTOMER
   public ResponseEntity<ApiResponse<UserProfileResponse>> getMyProfile(
       Authentication authentication) {
     UserProfileResponse response = userProfileService.getMyProfile(authentication.getName());

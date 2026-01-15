@@ -21,4 +21,6 @@ public class AuthResponse {
   private String username;
 
   private Set<String> roles;
+
+  private Set<String> permissions;
 }

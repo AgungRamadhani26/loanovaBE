@@ -18,11 +18,14 @@ import com.example.loanova.repository.PasswordResetTokenRepository;
 import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.RefreshTokenRepository;
 import com.example.loanova.repository.RoleRepository;
+import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +64,7 @@ public class AuthService implements UserDetailsService {
   private final UserRepository userRepository;
   private final RefreshTokenRepository refreshTokenRepository;
   private final RoleRepository roleRepository;
+  private final PermissionRepository permissionRepository;
   private final PasswordResetTokenRepository passwordResetTokenRepository;
   private final UserPlafondRepository userPlafondRepository;
   private final PlafondRepository plafondRepository;
@@ -82,6 +86,7 @@ public class AuthService implements UserDetailsService {
       UserRepository userRepository,
       RefreshTokenRepository refreshTokenRepository,
       RoleRepository roleRepository,
+      PermissionRepository permissionRepository,
       PasswordResetTokenRepository passwordResetTokenRepository,
       UserPlafondRepository userPlafondRepository,
       PlafondRepository plafondRepository,
@@ -92,6 +97,7 @@ public class AuthService implements UserDetailsService {
     this.userRepository = userRepository;
     this.refreshTokenRepository = refreshTokenRepository;
     this.roleRepository = roleRepository;
+    this.permissionRepository = permissionRepository;
     this.passwordResetTokenRepository = passwordResetTokenRepository;
     this.userPlafondRepository = userPlafondRepository;
     this.plafondRepository = plafondRepository;
@@ -223,7 +229,12 @@ public class AuthService implements UserDetailsService {
       // STEP 5: Generate JWT tokens
       // Access Token: 15 menit (untuk akses API)
       // Refresh Token: 7 hari (untuk generate access token baru)
-      String accessToken = jwtService.generateAccessToken(userDetails);
+      Map<String, Object> claims = new HashMap<>();
+      claims.put("authorities", userDetails.getAuthorities().stream()
+          .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+          .collect(Collectors.toList()));
+
+      String accessToken = jwtService.generateAccessToken(claims, userDetails);
       String refreshTokenString = jwtService.generateRefreshToken(userDetails);
 
       // STEP 6: Save refresh token ke database
@@ -242,6 +253,10 @@ public class AuthService implements UserDetailsService {
           .type("Bearer") // Token type untuk header
           .username(user.getUsername())
           .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
+          .permissions(user.getRoles().stream()
+              .flatMap(role -> role.getPermissions().stream())
+              .map(com.example.loanova.entity.Permission::getPermissionName)
+              .collect(Collectors.toSet()))
           .build();
 
     } catch (BadCredentialsException e) {
@@ -278,20 +293,28 @@ public class AuthService implements UserDetailsService {
     // org.springframework.security.core.userdetails.User = class dari Spring
     // Security
     // BUKAN entity User kita!
-    return new org.springframework.security.core.userdetails.User(
-        user.getUsername(), // Username untuk authentication
-        user.getPassword(), // Password (BCrypt hash) untuk compare
-        user.getIsActive(), // enabled: apakah user aktif?
-        true, // accountNonExpired: akun tidak expired
-        true, // credentialsNonExpired: password tidak expired
-        true, // accountNonLocked: akun tidak di-lock
-        // authorities: roles user untuk authorization
-        // Map Role entity → GrantedAuthority dengan prefix "ROLE_"
-        // Contoh: "ADMIN" → "ROLE_ADMIN"
-        // Prefix "ROLE_" otomatis ditambah supaya bisa pakai hasRole('ADMIN')
-        user.getRoles().stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName()))
-            .toList());
+        // authorities: roles & permissions user untuk authorization
+        // 1. Roles: Map Role entity → GrantedAuthority dengan prefix "ROLE_"
+        // 2. Permissions: Map Permission entity → GrantedAuthority tanpa prefix
+        java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+
+        user.getRoles().forEach(role -> {
+          // Add Role
+          authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+          // Add Permissions dari Role tersebut
+          role.getPermissions().forEach(permission -> {
+            authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+          });
+        });
+
+        return new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            user.getPassword(),
+            user.getIsActive(),
+            true,
+            true,
+            true,
+            authorities);
   }
 
   /**
@@ -353,7 +376,12 @@ public class AuthService implements UserDetailsService {
     }
 
     // STEP 7: Token Rotation - Generate access & refresh token BARU
-    String newAccessToken = jwtService.generateAccessToken(userDetails);
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("authorities", userDetails.getAuthorities().stream()
+        .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+        .collect(Collectors.toList()));
+
+    String newAccessToken = jwtService.generateAccessToken(claims, userDetails);
     String newRefreshTokenString = jwtService.generateRefreshToken(userDetails);
 
     // STEP 8: Update refresh token di database (Revoke yang lama)
@@ -374,6 +402,10 @@ public class AuthService implements UserDetailsService {
         .type("Bearer")
         .username(user.getUsername())
         .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
+        .permissions(user.getRoles().stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .map(com.example.loanova.entity.Permission::getPermissionName)
+            .collect(Collectors.toSet()))
         .build();
   }
 

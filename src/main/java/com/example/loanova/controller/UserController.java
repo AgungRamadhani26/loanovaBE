@@ -20,6 +20,7 @@ public class UserController {
   private final UserService userService;
 
   // GET ALL USERS
+  // Yang bisa akses hanya SUPERADMIN
   @GetMapping
   public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
     List<UserResponse> users = userService.getAllUser();
@@ -27,6 +28,7 @@ public class UserController {
   }
 
   // GET USER BY ID
+  // Yang bisa akses hanya SUPERADMIN
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
     UserResponse user = userService.getUserById(id);
@@ -34,6 +36,7 @@ public class UserController {
   }
 
   // CREATE USER
+  // Yang bisa akses hanya SUPERADMIN
   @PostMapping
   public ResponseEntity<ApiResponse<UserResponse>> createUser(
       @Valid @RequestBody UserRequest request) {
@@ -42,6 +45,7 @@ public class UserController {
   }
 
   // UPDATE USER
+  // Yang bisa akses hanya SUPERADMIN
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<UserResponse>> updateUser(
       @PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
@@ -50,6 +54,7 @@ public class UserController {
   }
 
   // DELETE USER
+  // Yang bisa akses hanya SUPERADMIN
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);

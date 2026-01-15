@@ -91,7 +91,8 @@ public class LoanApplicationService {
             // 3. Validasi branch yang dipilih exists
             Branch branch = branchRepository
                         .findById(branchId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan dengan ID: " + branchId));
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Branch tidak ditemukan dengan ID: " + branchId));
 
             // 4. Validasi user profile sudah lengkap
             UserProfile userProfile = userProfileRepository
@@ -249,11 +250,42 @@ public class LoanApplicationService {
        * GET APPLICATION HISTORY - Melihat history perubahan status loan application
        */
       @Transactional(readOnly = true)
-      public List<ApplicationHistoryResponse> getApplicationHistory(Long applicationId) {
+      public List<ApplicationHistoryResponse> getApplicationHistory(String username, Long applicationId) {
+            User user = userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+
             LoanApplication application = loanApplicationRepository
                         .findById(applicationId)
                         .orElseThrow(
                                     () -> new ResourceNotFoundException("Loan application tidak ditemukan"));
+
+            // Validasi akses
+            boolean hasAccess = false;
+
+            // 1. Cek SUPERADMIN / BACKOFFICE (Bebas akses)
+            if (user.getRoles().stream()
+                        .anyMatch(r -> r.getRoleName().equals("SUPERADMIN") || r.getRoleName().equals("BACKOFFICE"))) {
+                  hasAccess = true;
+            }
+            // 2. Cek MARKETING / BRANCH_MANAGER (Sesuai branch)
+            else if (user.getRoles().stream().anyMatch(
+                        r -> r.getRoleName().equals("MARKETING") || r.getRoleName().equals("BRANCH_MANAGER"))) {
+                  if (user.getBranch() != null &&
+                              application.getBranch().getId().equals(user.getBranch().getId())) {
+                        hasAccess = true;
+                  }
+            }
+            // 3. Cek CUSTOMER (Hanya punya sendiri)
+            else if (user.getRoles().stream().anyMatch(r -> r.getRoleName().equals("CUSTOMER"))) {
+                  if (application.getUser().getId().equals(user.getId())) {
+                        hasAccess = true;
+                  }
+            }
+
+            if (!hasAccess) {
+                  throw new BusinessException("Anda tidak memiliki akses untuk melihat history aplikasi ini");
+            }
 
             return applicationHistoryRepository
                         .findByLoanApplicationOrderByCreatedAtDesc(application).stream()
@@ -528,7 +560,7 @@ public class LoanApplicationService {
             // Sub-direktori untuk snapshot
             String snapshotSubDir = "loan-snapshots";
             Path snapshotDir = Paths.get(uploadDir, snapshotSubDir);
-            
+
             // Buat folder jika belum ada
             if (!Files.exists(snapshotDir)) {
                   Files.createDirectories(snapshotDir);
@@ -545,14 +577,15 @@ public class LoanApplicationService {
             // Path sumber file (originalPath biasanya berisi "profiles/uuid.jpg")
             // Kita harus gabungkan dengan uploadDir agar filenya ketemu
             Path sourcePath = Paths.get(uploadDir, originalPath);
-            
+
             if (Files.exists(sourcePath)) {
                   Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
                   // Return format yang konsisten dengan FileStorageUtil: "subDir/fileName"
                   return snapshotSubDir + "/" + newFileName;
             }
 
-            // Jika file source tidak ada (misal data dummy), return null agar tidak error saat fetching
+            // Jika file source tidak ada (misal data dummy), return null agar tidak error
+            // saat fetching
             return null;
       }
 

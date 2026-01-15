@@ -34,6 +34,7 @@ public class AuthController {
    * <p>Request: POST /api/auth/register Body: { "username": "...", "email": "...", "password":
    * "..." }
    */
+  // Yang bisa register hanya CUSTOMER
   @PostMapping("/register")
   public ResponseEntity<ApiResponse<RegisterResponse>> register(
       @Valid @RequestBody RegisterRequest request) {
@@ -52,6 +53,7 @@ public class AuthController {
    * "eyJhbGc...", "refreshToken": "abc123...", "type": "Bearer", "username": "SUMUT01", "roles":
    * ["ADMIN"] } }
    */
+  // Yang bisa login adalah semua role
   @PostMapping("/login")
   public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
     AuthResponse authResponse = authService.login(request);
@@ -76,6 +78,7 @@ public class AuthController {
    *
    * <p>Response Error (401): - Refresh token invalid/expired - User tidak ditemukan
    */
+  // Yang bisa refresh token adalah semua role, karena berguna agar tidak login berulang-ulang
   @PostMapping("/refresh")
   public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
       @Valid @RequestBody RefreshTokenRequest request) {
@@ -89,6 +92,7 @@ public class AuthController {
    * <p>Request: POST /api/auth/logout Header: Authorization: Bearer <accessToken> Body: {
    * "refreshToken": "..." }
    */
+  // Yang bisa logout adalah semua role
   @PostMapping("/logout")
   public ResponseEntity<ApiResponse<Void>> logout(
       @RequestHeader("Authorization") String authHeader,
@@ -99,6 +103,7 @@ public class AuthController {
   }
 
   /** ENDPOINT LUPA KATA SANDI */
+  // Yang bisa forgot-password adalah semua role
   @PostMapping("/forgot-password")
   public ResponseEntity<ApiResponse<Void>> forgotPassword(
       @Valid @RequestBody ForgotPasswordRequest request) {
@@ -108,6 +113,7 @@ public class AuthController {
   }
 
   /** ENDPOINT RESET KATA SANDI */
+  // Yang bisa reset-password adalah semua role
   @PostMapping("/reset-password")
   public ResponseEntity<ApiResponse<Void>> resetPassword(
       @Valid @RequestBody ResetPasswordRequest request) {
@@ -116,6 +122,7 @@ public class AuthController {
   }
 
   /** ENDPOINT GANTI PASSWORD (SAAT LOGIN) */
+  // Yang bisa change-password adalah semua role
   @PostMapping("/change-password")
   public ResponseEntity<ApiResponse<Void>> changePassword(
       @RequestHeader("Authorization") String authHeader,

@@ -20,6 +20,7 @@ public class RoleController {
   private final RoleService roleService;
 
   // GET ALL ROLES
+  // Yang bisa akses hanya SUPERADMIN
   @GetMapping
   public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
     List<RoleResponse> roles = roleService.getAllRoles();
@@ -27,6 +28,7 @@ public class RoleController {
   }
 
   // CREATE ROLE
+  // Yang bisa akses hanya SUPERADMIN
   @PostMapping
   public ResponseEntity<ApiResponse<RoleResponse>> createRole(
       @Valid @RequestBody RoleRequest request) {
@@ -35,6 +37,7 @@ public class RoleController {
   }
 
   // UPDATE ROLE DESCRIPTION
+  // Yang bisa akses hanya SUPERADMIN
   @PutMapping("/{id}")
   public ResponseEntity<ApiResponse<RoleResponse>> updateRoleDescription(
       @PathVariable Long id, @Valid @RequestBody RoleUpdateDescriptionRequest request) {
@@ -43,6 +46,7 @@ public class RoleController {
   }
 
   // DELETE ROLE
+  // Yang bisa akses hanya SUPERADMIN
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Long id) {
     roleService.deleteRole(id);

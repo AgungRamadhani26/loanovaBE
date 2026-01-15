@@ -28,6 +28,7 @@ public class UserPlafondController {
     * Plafond lama
     * yang masih aktif akan otomatis dinonaktifkan.
     */
+   // Yang bisa akses hanya SUPERADMIN dan BACKOFFICE
    @PreAuthorize("hasRole('SUPERADMIN')")
    @PostMapping("/assign")
    public ResponseEntity<ApiResponse<UserPlafondResponse>> assignPlafond(
@@ -41,6 +42,7 @@ public class UserPlafondController {
     * SUPERADMIN dan BACKOFFICE
     * bisa melihat plafond user lain.
     */
+   // Yang bisa akses hanya SUPERADMIN dan BACKOFFICE
    @PreAuthorize("hasAnyRole('SUPERADMIN', 'BACKOFFICE')")
    @GetMapping("/users/{userId}/active")
    public ResponseEntity<ApiResponse<UserPlafondResponse>> getActiveUserPlafond(
