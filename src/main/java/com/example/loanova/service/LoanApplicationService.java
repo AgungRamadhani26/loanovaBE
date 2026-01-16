@@ -37,6 +37,7 @@ public class LoanApplicationService {
       private final UserPlafondRepository userPlafondRepository;
       private final BranchRepository branchRepository;
       private final FileStorageUtil fileStorageUtil;
+      private final NotificationService notificationService;
 
       @org.springframework.beans.factory.annotation.Value("${file.upload-dir}")
       private String uploadDir;
@@ -358,6 +359,12 @@ public class LoanApplicationService {
                               LoanApplicationStatus.WAITING_APPROVAL.name(),
                               request.getComment() != null ? request.getComment() : "Diproses oleh Marketing",
                               "MARKETING");
+
+                  // NOTIFIKASI CUSTOMER
+                  notificationService.createNotification(
+                        application.getUser(),
+                        "Pengajuan Pinjaman Diproses",
+                        "Pengajuan pinjaman Anda telah diproses oleh Marketing dan sekarang menunggu persetujuan Branch Manager.");
             } else {
                   // Reject -> kembalikan remaining amount
                   application.setStatus(LoanApplicationStatus.REJECTED.name());
@@ -382,6 +389,12 @@ public class LoanApplicationService {
                               LoanApplicationStatus.REJECTED.name(),
                               request.getComment(),
                               "MARKETING");
+
+                  // NOTIFIKASI CUSTOMER
+                  notificationService.createNotification(
+                        application.getUser(),
+                        "Pengajuan Pinjaman Ditolak",
+                        "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Marketing. Alasan: " + request.getComment());
             }
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
@@ -456,6 +469,12 @@ public class LoanApplicationService {
                               LoanApplicationStatus.WAITING_DISBURSEMENT.name(),
                               request.getComment() != null ? request.getComment() : "Disetujui oleh Branch Manager",
                               "BRANCHMANAGER");
+
+                  // NOTIFIKASI CUSTOMER
+                  notificationService.createNotification(
+                        application.getUser(),
+                        "Pengajuan Pinjaman Disetujui",
+                        "Selamat! Pengajuan pinjaman Anda telah disetujui oleh Branch Manager dan sedang menunggu pencairan dana.");
             } else {
                   // Reject -> kembalikan remaining amount
                   application.setStatus(LoanApplicationStatus.REJECTED.name());
@@ -480,6 +499,12 @@ public class LoanApplicationService {
                               LoanApplicationStatus.REJECTED.name(),
                               request.getComment(),
                               "BRANCHMANAGER");
+
+                  // NOTIFIKASI CUSTOMER
+                  notificationService.createNotification(
+                        application.getUser(),
+                        "Pengajuan Pinjaman Ditolak",
+                        "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Branch Manager. Alasan: " + request.getComment());
             }
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
@@ -530,6 +555,13 @@ public class LoanApplicationService {
                         "Pinjaman berhasil dicairkan",
                         "BACKOFFICE");
 
+            // NOTIFIKASI CUSTOMER
+            notificationService.createNotification(
+                  application.getUser(),
+                  "Dana Pinjaman Cair!",
+                  "Kabar gembira! Dana pinjaman Anda sebesar Rp " + application.getAmount() + " telah berhasil dicairkan. Silakan cek rekening Anda.");
+            // TODO: Kirim notifikasi via Email/WA real (Future Improvement)
+
             LoanApplication savedApplication = loanApplicationRepository.save(application);
             return toResponse(savedApplication);
       }
@@ -578,6 +610,12 @@ public class LoanApplicationService {
                         LoanApplicationStatus.REJECTED.name(),
                         request.getComment(),
                         "BACKOFFICE");
+
+            // NOTIFIKASI CUSTOMER
+            notificationService.createNotification(
+                  application.getUser(),
+                  "Pencairan Pinjaman Ditolak",
+                  "Mohon maaf, proses pencairan pinjaman Anda ditolak oleh Backoffice. Alasan: " + request.getComment());
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
             return toResponse(savedApplication);
