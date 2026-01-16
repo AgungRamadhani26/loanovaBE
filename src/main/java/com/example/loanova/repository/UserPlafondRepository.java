@@ -32,4 +32,10 @@ public interface UserPlafondRepository extends JpaRepository<UserPlafond, Long> 
     * @return Optional UserPlafond
     */
    Optional<UserPlafond> findByUserAndIsActive(User user, Boolean isActive);
+
+   /**
+    * Cek apakah plafond tertentu masih digunakan oleh user.
+    */
+   @org.springframework.data.jpa.repository.Query(value = "SELECT COUNT(*) > 0 FROM user_plafonds WHERE plafond_id = :plafondId", nativeQuery = true)
+   boolean existsByPlafondId(@org.springframework.data.repository.query.Param("plafondId") Long plafondId);
 }

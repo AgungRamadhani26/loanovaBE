@@ -159,10 +159,10 @@ public class AuthService implements UserDetailsService {
    * @param user User yang baru dibuat
    */
   private void createDefaultUserPlafond(User user) {
-    // Ambil plafond Bronze (ID = 3)
+    // Ambil plafond Bronze berdasarkan nama
     Plafond bronzePlafond = plafondRepository
-        .findById(3L)
-        .orElseThrow(() -> new BusinessException("Plafond Bronze (ID 3) tidak ditemukan"));
+        .findByName("BRONZE")
+        .orElseThrow(() -> new BusinessException("Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
 
     // Create user plafond dengan max_amount dari Bronze
     UserPlafond userPlafond = UserPlafond.builder()

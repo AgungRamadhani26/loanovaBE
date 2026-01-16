@@ -3,22 +3,30 @@ package com.example.loanova.service;
 import com.example.loanova.dto.request.BranchRequest;
 import com.example.loanova.dto.response.BranchResponse;
 import com.example.loanova.entity.Branch;
+import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.BranchRepository;
+import com.example.loanova.repository.LoanApplicationRepository;
+import com.example.loanova.repository.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BranchService {
 
   private final BranchRepository branchRepository;
+  private final UserRepository userRepository;
+  private final LoanApplicationRepository loanApplicationRepository;
 
-  // Sebenernya tanpa kode dibawah bisa namun kita harus memberikan
-  // anotasi @RequiredArgsConstructor sebelum nama kelas BranchService
-  // ini merupakah anotasi bawaan lombok
-  public BranchService(BranchRepository branchRepository) {
+  public BranchService(
+      BranchRepository branchRepository,
+      UserRepository userRepository,
+      LoanApplicationRepository loanApplicationRepository) {
     this.branchRepository = branchRepository;
+    this.userRepository = userRepository;
+    this.loanApplicationRepository = loanApplicationRepository;
   }
 
   /*
@@ -110,12 +118,26 @@ public class BranchService {
   /*
    * Soft delete - menandai branch sebagai deleted tanpa menghapus dari database
    */
+  @org.springframework.transaction.annotation.Transactional
   public void deleteBranch(Long id) {
     Branch branch =
         branchRepository
             .findById(id)
             .orElseThrow(
                 () -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
+
+    // VALIDASI SAFE-DELETE 1: Cek apakah masih ada staff aktif di cabang ini
+    if (userRepository.existsByBranchIdAndIsActiveTrue(id)) {
+      throw new BusinessException(
+          "Cabang '" + branch.getBranchName() + "' tidak bisa dihapus karena masih memiliki staff/pengguna aktif.");
+    }
+
+    // VALIDASI SAFE-DELETE 2: Cek apakah masih ada pinjaman berjalan (non-final status)
+    if (loanApplicationRepository.existsByBranchIdAndStatusNotIn(id)) {
+      throw new BusinessException(
+          "Cabang '" + branch.getBranchName() + "' tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
+    }
+
     branch.softDelete();
     branchRepository.save(branch);
   }

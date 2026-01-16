@@ -16,6 +16,7 @@ import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.RoleRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
+import com.example.loanova.repository.LoanApplicationRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ public class UserService {
   private final UserPlafondRepository userPlafondRepository;
   private final PlafondRepository plafondRepository;
   private final PasswordEncoder passwordEncoder;
+  private final LoanApplicationRepository loanApplicationRepository;
 
   public UserService(
       UserRepository userRepository,
@@ -39,13 +41,15 @@ public class UserService {
       RoleRepository roleRepository,
       UserPlafondRepository userPlafondRepository,
       PlafondRepository plafondRepository,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      LoanApplicationRepository loanApplicationRepository) {
     this.userRepository = userRepository;
     this.branchRepository = branchRepository;
     this.roleRepository = roleRepository;
     this.userPlafondRepository = userPlafondRepository;
     this.plafondRepository = plafondRepository;
     this.passwordEncoder = passwordEncoder;
+    this.loanApplicationRepository = loanApplicationRepository;
   }
 
   /*
@@ -186,6 +190,23 @@ public class UserService {
         .orElseThrow(
             () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
 
+    // VALIDASI SAFE-DELETE 1: Proteksi Superadmin Terakhir
+    boolean isAdmin = user.getRoles().stream()
+        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN"));
+
+    if (isAdmin && user.getIsActive()) {
+        long activeAdminCount = userRepository.countByRolesRoleNameAndIsActiveTrue("SUPERADMIN");
+        if (activeAdminCount <= 1) {
+            throw new BusinessException("Gagal menghapus. Harus ada minimal satu SUPERADMIN aktif di sistem.");
+        }
+    }
+
+    // VALIDASI SAFE-DELETE 2: Cek Pinjaman Aktif
+    if (loanApplicationRepository.existsActiveApplicationByUser(user.getId())) {
+        throw new BusinessException("User tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
+    }
+
+    user.setIsActive(false); // Otomatis nonaktifkan saat didelete
     user.softDelete();
     userRepository.save(user);
   }
@@ -217,10 +238,10 @@ public class UserService {
       return;
     }
 
-    // Ambil plafond Bronze (ID = 3)
+    // Ambil plafond Bronze berdasarkan nama
     Plafond bronzePlafond = plafondRepository
-        .findById(3L)
-        .orElseThrow(() -> new BusinessException("Plafond Bronze (ID 3) tidak ditemukan"));
+        .findByName("BRONZE")
+        .orElseThrow(() -> new BusinessException("Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
 
     // Create user plafond dengan max_amount dari Bronze
     UserPlafond userPlafond = UserPlafond.builder()

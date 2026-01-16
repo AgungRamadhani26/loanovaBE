@@ -54,4 +54,22 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
    * Mencari loan application berdasarkan ID dan branch (untuk validasi akses MARKETING/BRANCHMANAGER).
    */
   Optional<LoanApplication> findByIdAndBranchId(Long id, Long branchId);
+
+  /**
+   * Cek apakah user memiliki pinjaman yang sedang diproses (belum selesai).
+   */
+  @Query(value = "SELECT COUNT(*) > 0 FROM loan_applications WHERE user_id = :userId AND status NOT IN ('DISBURSED', 'REJECTED')", nativeQuery = true)
+  boolean existsActiveApplicationByUser(@Param("userId") Long userId);
+
+  /**
+   * Cek apakah ada pinjaman di suatu cabang yang statusnya belum selesai.
+   */
+  @Query(value = "SELECT COUNT(*) > 0 FROM loan_applications WHERE branch_id = :branchId AND status NOT IN ('DISBURSED', 'REJECTED')", nativeQuery = true)
+  boolean existsByBranchIdAndStatusNotIn(@Param("branchId") Long branchId);
+
+  /**
+   * Cek apakah ada pinjaman yang menggunakan paket plafond tertentu.
+   */
+  @Query(value = "SELECT COUNT(*) > 0 FROM loan_applications WHERE plafond_id = :plafondId", nativeQuery = true)
+  boolean existsByPlafondId(@Param("plafondId") Long plafondId);
 }

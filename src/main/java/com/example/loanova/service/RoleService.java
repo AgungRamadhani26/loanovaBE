@@ -5,10 +5,12 @@ import com.example.loanova.dto.request.RoleUpdateRequest;
 import com.example.loanova.dto.response.RoleResponse;
 import com.example.loanova.entity.Permission;
 import com.example.loanova.entity.Role;
+import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.RoleRepository;
+import com.example.loanova.repository.UserRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,12 +23,15 @@ public class RoleService {
 
   private final RoleRepository roleRepository;
   private final PermissionRepository permissionRepository;
+  private final UserRepository userRepository;
 
   public RoleService(
       RoleRepository roleRepository,
-      PermissionRepository permissionRepository) {
+      PermissionRepository permissionRepository,
+      UserRepository userRepository) {
     this.roleRepository = roleRepository;
     this.permissionRepository = permissionRepository;
+    this.userRepository = userRepository;
   }
 
   /**
@@ -82,9 +87,24 @@ public class RoleService {
   /**
    * Soft delete - menandai role sebagai deleted tanpa menghapus dari database
    */
+  @Transactional
   public void deleteRole(Long id) {
     Role role = roleRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data role dengan id " + id));
+
+    // VALIDASI SAFE-DELETE 1: Proteksi Role Sistem (Immutable)
+    if (role.getRoleName().equalsIgnoreCase("SUPERADMIN") || 
+        role.getRoleName().equalsIgnoreCase("CUSTOMER")) {
+      throw new BusinessException(
+          "Role '" + role.getRoleName() + "' adalah Role Sistem dan tidak boleh dihapus.");
+    }
+
+    // VALIDASI SAFE-DELETE 2: Cek apakah masih ada user yang menggunakan role ini
+    if (userRepository.existsByRolesId(id)) {
+      throw new BusinessException(
+          "Role '" + role.getRoleName() + "' tidak bisa dihapus karena masih digunakan oleh beberapa pengguna.");
+    }
+
     role.softDelete();
     roleRepository.save(role);
   }

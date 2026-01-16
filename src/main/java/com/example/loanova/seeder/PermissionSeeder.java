@@ -73,6 +73,7 @@ public class PermissionSeeder implements CommandLineRunner {
                 createPermissionIfNotFound("LOAN:APPROVE", "Melakukan approval pengajuan (BM)"),
                 createPermissionIfNotFound("LOAN:LIST_WAITING_DISBURSE", "Melihat daftar waiting disbursement (Backoffice)"),
                 createPermissionIfNotFound("LOAN:DISBURSE", "Melakukan pencairan pinjaman (Backoffice)"),
+                createPermissionIfNotFound("LOAN:REJECT_BACKOFFICE", "Menolak pencairan pinjaman (Backoffice)"),
 
                 // PLAFOND Management
                 createPermissionIfNotFound("PLAFOND:READ", "Melihat daftar plafond"),
@@ -121,7 +122,7 @@ public class PermissionSeeder implements CommandLineRunner {
 
         // BACKOFFICE:
         assignPermissionsToRole("BACKOFFICE", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
-                "LOAN:DETAILS", "LOAN:HISTORY", "LOAN:LIST_WAITING_DISBURSE", "LOAN:DISBURSE", 
+                "LOAN:DETAILS", "LOAN:HISTORY", "LOAN:LIST_WAITING_DISBURSE", "LOAN:DISBURSE", "LOAN:REJECT_BACKOFFICE",
                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ"
         ))));
 

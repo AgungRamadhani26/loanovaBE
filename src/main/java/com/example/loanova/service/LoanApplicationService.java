@@ -534,6 +534,55 @@ public class LoanApplicationService {
             return toResponse(savedApplication);
       }
 
+      /**
+       * REJECT BY BACKOFFICE - Backoffice menolak pencairan
+       */
+      @Transactional
+      public LoanApplicationResponse rejectByBackoffice(String username, Long applicationId, LoanReviewRequest request) {
+            User user = userRepository
+                        .findByUsername(username)
+                        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+
+            LoanApplication application = loanApplicationRepository
+                        .findById(applicationId)
+                        .orElseThrow(
+                                    () -> new ResourceNotFoundException("Loan application tidak ditemukan"));
+
+            // Validasi status harus WAITING_DISBURSEMENT
+            if (!application.getStatus().equals(LoanApplicationStatus.WAITING_DISBURSEMENT.name())) {
+                  throw new BusinessException(
+                              "Loan application tidak dalam status WAITING_DISBURSEMENT. Status saat ini: "
+                                          + application.getStatus());
+            }
+
+            // Validasi comment wajib jika reject
+            if (request.getComment() == null || request.getComment().trim().isEmpty()) {
+                  throw new BusinessException("Comment wajib diisi jika melakukan reject");
+            }
+
+            // Ubah status jadi REJECTED
+            application.setStatus(LoanApplicationStatus.REJECTED.name());
+
+            // KEMBALIKAN PLAFOND: Karena belum dicairkan, limit harus dikembalikan
+            UserPlafond userPlafond = userPlafondRepository
+                        .findByUserAndIsActive(application.getUser(), true)
+                        .orElseThrow(() -> new BusinessException("User plafond tidak ditemukan"));
+
+            userPlafond.setRemainingAmount(
+                        userPlafond.getRemainingAmount().add(application.getAmount()));
+            userPlafondRepository.save(userPlafond);
+
+            createHistory(
+                        application,
+                        user,
+                        LoanApplicationStatus.REJECTED.name(),
+                        request.getComment(),
+                        "BACKOFFICE");
+
+            LoanApplication savedApplication = loanApplicationRepository.save(application);
+            return toResponse(savedApplication);
+      }
+
       /** Helper method untuk create history */
       private void createHistory(
                   LoanApplication application, User actionBy, String status, String comment, String role) {

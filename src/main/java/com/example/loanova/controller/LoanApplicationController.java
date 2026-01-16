@@ -201,4 +201,18 @@ public class LoanApplicationController {
     LoanApplicationResponse response = loanApplicationService.disburseByBackoffice(username, id);
     return ResponseUtil.ok(response, "Pinjaman berhasil dicairkan");
   }
+
+  /**
+   * BACKOFFICE - Reject loan application during disbursement stage
+   */
+  @PutMapping("/{id}/backoffice-reject")
+  @PreAuthorize("hasAuthority('LOAN:REJECT_BACKOFFICE')")
+  public ResponseEntity<ApiResponse<LoanApplicationResponse>> backofficeReject(
+      Authentication authentication,
+      @PathVariable Long id,
+      @Valid @RequestBody LoanReviewRequest request) {
+    String username = authentication.getName();
+    LoanApplicationResponse response = loanApplicationService.rejectByBackoffice(username, id, request);
+    return ResponseUtil.ok(response, "Pencairan pinjaman berhasil ditolak");
+  }
 }

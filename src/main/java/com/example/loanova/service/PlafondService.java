@@ -3,9 +3,12 @@ package com.example.loanova.service;
 import com.example.loanova.dto.request.PlafondRequest;
 import com.example.loanova.dto.response.PlafondResponse;
 import com.example.loanova.entity.Plafond;
+import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
+import com.example.loanova.repository.LoanApplicationRepository;
 import com.example.loanova.repository.PlafondRepository;
+import com.example.loanova.repository.UserPlafondRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PlafondService {
 
   private final PlafondRepository plafondRepository;
+  private final UserPlafondRepository userPlafondRepository;
+  private final LoanApplicationRepository loanApplicationRepository;
 
   /** Mendapatkan semua plafond yang aktif */
   @Cacheable(value = "plafonds")
@@ -111,6 +116,19 @@ public class PlafondService {
             .orElseThrow(
                 () ->
                     new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+
+    // VALIDASI SAFE-DELETE 1: Cek apakah masih digunakan oleh user di mapping UserPlafond
+    if (userPlafondRepository.existsByPlafondId(id)) {
+      throw new BusinessException(
+          "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena masih digunakan oleh beberapa customer.");
+    }
+
+    // VALIDASI SAFE-DELETE 2: Cek apakah ada riwayat pinjaman yang merujuk paket ini
+    if (loanApplicationRepository.existsByPlafondId(id)) {
+      throw new BusinessException(
+          "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena memiliki riwayat pengajuan pinjaman.");
+    }
+
     plafond.softDelete();
     plafondRepository.save(plafond);
   }
