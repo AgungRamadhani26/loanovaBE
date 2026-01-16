@@ -8,6 +8,8 @@ import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.PlafondRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +24,13 @@ public class PlafondService {
   private final PlafondRepository plafondRepository;
 
   /** Mendapatkan semua plafond yang aktif */
+  @Cacheable(value = "plafonds")
   public List<PlafondResponse> getAllPlafonds() {
     return plafondRepository.findAll().stream().map(this::toResponse).toList();
   }
 
   /** Mendapatkan detail plafond berdasarkan ID */
+  @Cacheable(value = "plafond", key = "#id")
   public PlafondResponse getPlafondById(Long id) {
     return plafondRepository
         .findById(id)
@@ -40,6 +44,7 @@ public class PlafondService {
    * sudah dihapus.
    */
   @Transactional
+  @CacheEvict(value = "plafonds", allEntries = true)
   public PlafondResponse createPlafond(PlafondRequest request) {
     if (plafondRepository.existsByName(request.getName())) {
       throw new DuplicateResourceException(
@@ -71,6 +76,7 @@ public class PlafondService {
    * yang sedang aktif.
    */
   @Transactional
+  @CacheEvict(value = { "plafond", "plafonds" }, key = "#id", allEntries = true)
   public PlafondResponse updatePlafond(Long id, PlafondRequest request) {
     Plafond plafond =
         plafondRepository
@@ -97,6 +103,7 @@ public class PlafondService {
 
   /** Menghapus plafond (soft delete) */
   @Transactional
+  @CacheEvict(value = { "plafond", "plafonds" }, key = "#id", allEntries = true)
   public void deletePlafond(Long id) {
     Plafond plafond =
         plafondRepository
@@ -110,6 +117,7 @@ public class PlafondService {
 
   /** Restore plafond yang sudah di-soft delete */
   @Transactional
+  @CacheEvict(value = { "plafond", "plafonds" }, key = "#id", allEntries = true)
   public PlafondResponse restorePlafond(Long id) {
     Plafond plafond =
         plafondRepository

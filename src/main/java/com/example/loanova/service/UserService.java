@@ -19,8 +19,6 @@ import com.example.loanova.repository.UserRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +51,6 @@ public class UserService {
   /*
    * Mendapatkan semua User yang ada di sistem (auto exclude deleted via @Where)
    */
-  @Cacheable(value = "users")
   public List<UserResponse> getAllUser() {
     return userRepository.findAll().stream().map(this::toResponse).collect(Collectors.toList());
   }
@@ -61,7 +58,6 @@ public class UserService {
   /*
    * Mendapatkan User berdasarkan ID
    */
-  @Cacheable(value = "user", key = "#id")
   public UserResponse getUserById(Long id) {
     User user = userRepository
         .findById(id)
@@ -72,7 +68,6 @@ public class UserService {
 
   /* Menambahkan User baru ke dalam sistem */
   @Transactional
-  @CacheEvict(value = "users", allEntries = true)
   public UserResponse createUser(UserRequest request) {
     if (userRepository.existsByUsername(request.getUsername())) {
       throw new DuplicateResourceException("Username sudah digunakan");
@@ -124,7 +119,6 @@ public class UserService {
 
   /* Mengupdate data user */
   @Transactional
-  @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
   public UserResponse updateUser(Long id, UserUpdateRequest request) {
     User user = userRepository
         .findById(id)
@@ -186,7 +180,6 @@ public class UserService {
 
   /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
   @Transactional
-  @CacheEvict(value = { "user", "users" }, key = "#id", allEntries = true)
   public void deleteUser(Long id) {
     User user = userRepository
         .findById(id)
