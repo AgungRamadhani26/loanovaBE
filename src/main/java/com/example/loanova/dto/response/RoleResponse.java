@@ -9,4 +9,5 @@ public class RoleResponse {
   private Long id;
   private String roleName;
   private String roleDescription;
+  private java.util.Set<String> permissions;
 }

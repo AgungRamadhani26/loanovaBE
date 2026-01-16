@@ -33,7 +33,12 @@ This document provides a comprehensive list of all granular permissions availabl
 | `BRANCH:DELETE` | Soft-delete a branch. | SUPERADMIN |
 | `BRANCH:RESTORE` | Restore a previously deleted branch. | SUPERADMIN |
 
-### 4. User & Role Management
+### 4. Permission Management
+| Permission | Description | Assigned Roles |
+| :--- | :--- | :--- |
+| `PERMISSION:READ` | View list of all available permissions. | SUPERADMIN |
+
+### 5. User & Role Management
 | Permission | Description | Assigned Roles |
 | :--- | :--- | :--- |
 | `USER:READ` | List all registered users (staff and customers). | SUPERADMIN |

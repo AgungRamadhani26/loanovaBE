@@ -13,4 +13,6 @@ public class RoleRequest {
   @NotBlank(message = "Role description wajib diisi")
   @Size(max = 255, message = "Role description maksimal 255 karakter")
   private String roleDescription;
+
+  private java.util.Set<Integer> permissionIds;
 }

@@ -3,7 +3,6 @@ package com.example.loanova.seeder;
 import com.example.loanova.entity.Permission;
 import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.RoleRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +14,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 public class PermissionSeeder implements CommandLineRunner {
 
     private final PermissionRepository permissionRepository;
     private final RoleRepository roleRepository;
+
+    public PermissionSeeder(
+            PermissionRepository permissionRepository,
+            RoleRepository roleRepository) {
+        this.permissionRepository = permissionRepository;
+        this.roleRepository = roleRepository;
+    }
 
     @Override
     @Transactional
@@ -46,6 +51,9 @@ public class PermissionSeeder implements CommandLineRunner {
                 createPermissionIfNotFound("ROLE:CREATE", "Menambah role baru"),
                 createPermissionIfNotFound("ROLE:UPDATE", "Mengubah deskripsi role"),
                 createPermissionIfNotFound("ROLE:DELETE", "Menghapus role"),
+
+                // PERMISSION Management (Discovery)
+                createPermissionIfNotFound("PERMISSION:READ", "Melihat daftar hak akses (dictionary)"),
 
                 // BRANCH Management
                 createPermissionIfNotFound("BRANCH:READ", "Melihat daftar cabang"),
@@ -95,6 +103,7 @@ public class PermissionSeeder implements CommandLineRunner {
         assignPermissionsToRole("SUPERADMIN", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                 "USER:READ", "USER:DETAILS", "USER:CREATE", "USER:UPDATE", "USER:DELETE",
                 "ROLE:READ", "ROLE:CREATE", "ROLE:UPDATE", "ROLE:DELETE",
+                "PERMISSION:READ",
                 "BRANCH:READ", "BRANCH:CREATE", "BRANCH:UPDATE", "BRANCH:DELETE", "BRANCH:RESTORE",
                 "PLAFOND:READ", "PLAFOND:DETAILS", "PLAFOND:CREATE", "PLAFOND:UPDATE", "PLAFOND:DELETE", "PLAFOND:RESTORE",
                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ"
