@@ -81,7 +81,10 @@ public class SecurityConfig {
                                         "/api/auth/forgot-password",
                                         "/api/auth/reset-password",
                                         "/api/plafonds/public", // Public access untuk melihat list plafond
-                                        "/uploads/**") // Allow public access to uploaded files
+                                        "/uploads/**", // Allow public access to uploaded files
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html")
                                 .permitAll()
 
                                 // Protected endpoints - Harus login (punya valid JWT token)

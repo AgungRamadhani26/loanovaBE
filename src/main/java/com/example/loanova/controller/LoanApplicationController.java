@@ -50,6 +50,24 @@ public class LoanApplicationController {
   }
 
   /**
+   * ALL ROLES - Get all loan applications
+   * SUPERADMIN/BACKOFFICE: All data
+   * MARKETING/BRANCHMANAGER: Branch data
+   * CUSTOMER: Own data
+   *
+   * @param authentication - User login
+   * @return ApiResponse list
+   */
+  @GetMapping
+  @PreAuthorize("hasAuthority('LOAN:READ_ALL')")
+  public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getAllApplications(
+      Authentication authentication) {
+    String username = authentication.getName();
+    List<LoanApplicationResponse> responses = loanApplicationService.getAllApplications(username);
+    return ResponseUtil.ok(responses, "Berhasil mengambil data list pengajuan pinjaman");
+  }
+
+  /**
    * CUSTOMER - Get my loan applications
    *
    * @param authentication - User yang login (CUSTOMER)

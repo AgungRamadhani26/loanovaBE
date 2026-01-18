@@ -402,6 +402,42 @@ public class LoanApplicationService {
       }
 
       /**
+       * GET ALL APPLICATIONS - Get all loan applications based on user role
+       * SUPERADMIN/BACKOFFICE: See ALL
+       * MARKETING/BRANCHMANAGER: See Branch Only
+       * CUSTOMER: See Own Only
+       */
+      @Transactional(readOnly = true)
+      public List<LoanApplicationResponse> getAllApplications(String username) {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+
+            List<String> roles = user.getRoles().stream()
+                    .map(Role::getRoleName)
+                    .collect(Collectors.toList());
+            
+            List<LoanApplication> applications;
+
+            if (roles.contains("SUPERADMIN") || roles.contains("BACKOFFICE")) {
+                // SUPERADMIN & BACKOFFICE: See ALL
+                applications = loanApplicationRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt"));
+            } else if (roles.contains("MARKETING") || roles.contains("BRANCHMANAGER")) {
+                // MARKETING & BRANCHMANAGER: See Branch Only
+                if (user.getBranch() == null) {
+                    throw new BusinessException("User staff tidak memiliki assignment branch");
+                }
+                applications = loanApplicationRepository.findByBranchIdOrderBySubmittedAtDesc(user.getBranch().getId());
+            } else {
+                // CUSTOMER (or others): See Own Only
+                applications = loanApplicationRepository.findByUserOrderBySubmittedAtDesc(user);
+            }
+
+            return applications.stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+      }
+
+      /**
        * GET WAITING APPROVAL APPLICATIONS FOR BRANCH MANAGER - Branch Manager melihat
        * list pinjaman
        * dengan status WAITING_APPROVAL di branch nya
