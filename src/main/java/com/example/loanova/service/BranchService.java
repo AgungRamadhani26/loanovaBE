@@ -104,10 +104,36 @@ public class BranchService {
             .findById(id)
             .orElseThrow(
                 () -> new ResourceNotFoundException("Maaf, tidak ada data branch dengan id " + id));
-    if (!branch.getBranchCode().equals(request.getBranchCode())
-        && branchRepository.existsByBranchCode(request.getBranchCode())) {
-      throw new DuplicateResourceException(
-          "Branch code " + request.getBranchCode() + " sudah digunakan");
+    /*
+     * Validasi perubahan Branch Code
+     */
+    if (!branch.getBranchCode().equals(request.getBranchCode())) {
+      if (branchRepository.existsByBranchCode(request.getBranchCode())) {
+        throw new DuplicateResourceException(
+            "Branch code " + request.getBranchCode() + " sudah digunakan");
+      }
+      if (branchRepository.existsByBranchCodeAnyStatus(request.getBranchCode())) {
+        throw new DuplicateResourceException(
+            "Branch code "
+                + request.getBranchCode()
+                + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
+      }
+    }
+
+    /*
+     * Validasi perubahan Branch Name
+     */
+    if (!branch.getBranchName().equals(request.getBranchName())) {
+      if (branchRepository.existsByBranchName(request.getBranchName())) {
+        throw new DuplicateResourceException(
+            "Branch name " + request.getBranchName() + " sudah digunakan");
+      }
+      if (branchRepository.existsByBranchNameAnyStatus(request.getBranchName())) {
+        throw new DuplicateResourceException(
+            "Branch name "
+                + request.getBranchName()
+                + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
+      }
     }
     branch.setBranchCode(request.getBranchCode());
     branch.setBranchName(request.getBranchName());
