@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * PLAFOND SERVICE Layer bisnis untuk mengelola data plafond pinjaman. Menangani logika validasi
+ * PLAFOND SERVICE Layer bisnis untuk mengelola data plafond pinjaman. Menangani
+ * logika validasi
  * duplikasi, soft delete, dan pemulihan data.
  */
 @Service
@@ -43,7 +44,8 @@ public class PlafondService {
   }
 
   /**
-   * Menambahkan plafond baru. Melakukan pengecekan duplikasi nama baik pada data aktif maupun yang
+   * Menambahkan plafond baru. Melakukan pengecekan duplikasi nama baik pada data
+   * aktif maupun yang
    * sudah dihapus.
    */
   @Transactional
@@ -61,32 +63,44 @@ public class PlafondService {
               + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
     }
 
-    Plafond plafond =
-        Plafond.builder()
-            .name(request.getName())
-            .description(request.getDescription())
-            .maxAmount(request.getMaxAmount())
-            .interestRate(request.getInterestRate())
-            .tenorMin(request.getTenorMin())
-            .tenorMax(request.getTenorMax())
-            .build();
+    Plafond plafond = Plafond.builder()
+        .name(request.getName())
+        .description(request.getDescription())
+        .maxAmount(request.getMaxAmount())
+        .interestRate(request.getInterestRate())
+        .tenorMin(request.getTenorMin())
+        .tenorMax(request.getTenorMax())
+        .build();
 
     return toResponse(plafondRepository.save(plafond));
   }
 
   /**
-   * Mengupdate data plafond yang sudah ada. Memastikan nama baru tidak bentrok dengan plafond lain
+   * Mengupdate data plafond yang sudah ada. Memastikan nama baru tidak bentrok
+   * dengan plafond lain
    * yang sedang aktif.
    */
   @Transactional
 
   public PlafondResponse updatePlafond(Long id, PlafondRequest request) {
-    Plafond plafond =
-        plafondRepository
-            .findById(id)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+    Plafond plafond = plafondRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+
+    // VALIDASI SAFE-UPDATE 1: Cek apakah masih digunakan oleh user di mapping
+    // UserPlafond
+    if (userPlafondRepository.existsByPlafondId(id)) {
+      throw new BusinessException(
+          "Plafond '" + plafond.getName() + "' tidak bisa diubah karena masih digunakan oleh beberapa customer.");
+    }
+
+    // VALIDASI SAFE-UPDATE 2: Cek apakah ada riwayat pinjaman yang merujuk paket
+    // ini
+    if (loanApplicationRepository.existsByPlafondId(id)) {
+      throw new BusinessException(
+          "Plafond '" + plafond.getName() + "' tidak bisa diubah karena memiliki riwayat pengajuan pinjaman.");
+    }
 
     if (!plafond.getName().equalsIgnoreCase(request.getName())
         && plafondRepository.existsByName(request.getName())) {
@@ -108,20 +122,20 @@ public class PlafondService {
   @Transactional
 
   public void deletePlafond(Long id) {
-    Plafond plafond =
-        plafondRepository
-            .findById(id)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+    Plafond plafond = plafondRepository
+        .findById(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
 
-    // VALIDASI SAFE-DELETE 1: Cek apakah masih digunakan oleh user di mapping UserPlafond
+    // VALIDASI SAFE-DELETE 1: Cek apakah masih digunakan oleh user di mapping
+    // UserPlafond
     if (userPlafondRepository.existsByPlafondId(id)) {
       throw new BusinessException(
           "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena masih digunakan oleh beberapa customer.");
     }
 
-    // VALIDASI SAFE-DELETE 2: Cek apakah ada riwayat pinjaman yang merujuk paket ini
+    // VALIDASI SAFE-DELETE 2: Cek apakah ada riwayat pinjaman yang merujuk paket
+    // ini
     if (loanApplicationRepository.existsByPlafondId(id)) {
       throw new BusinessException(
           "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena memiliki riwayat pengajuan pinjaman.");
@@ -135,12 +149,10 @@ public class PlafondService {
   @Transactional
 
   public PlafondResponse restorePlafond(Long id) {
-    Plafond plafond =
-        plafondRepository
-            .findByIdIncludeDeleted(id)
-            .orElseThrow(
-                () ->
-                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+    Plafond plafond = plafondRepository
+        .findByIdIncludeDeleted(id)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
 
     plafond.restore();
     return toResponse(plafondRepository.save(plafond));
