@@ -60,7 +60,7 @@ public class PlafondService {
       throw new DuplicateResourceException(
           "Nama plafond "
               + request.getName()
-              + " sudah dihapus namun masih tersimpan di sistem, silahkan restore data jika ingin mengembalikannya.");
+              + " sudah dihapus namun masih tersimpan di sistem. Silakan gunakan nama lain.");
     }
 
     Plafond plafond = Plafond.builder()
@@ -71,49 +71,6 @@ public class PlafondService {
         .tenorMin(request.getTenorMin())
         .tenorMax(request.getTenorMax())
         .build();
-
-    return toResponse(plafondRepository.save(plafond));
-  }
-
-  /**
-   * Mengupdate data plafond yang sudah ada. Memastikan nama baru tidak bentrok
-   * dengan plafond lain
-   * yang sedang aktif.
-   */
-  @Transactional
-
-  public PlafondResponse updatePlafond(Long id, PlafondRequest request) {
-    Plafond plafond = plafondRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
-
-    // VALIDASI SAFE-UPDATE 1: Cek apakah masih digunakan oleh user di mapping
-    // UserPlafond
-    if (userPlafondRepository.existsByPlafondId(id)) {
-      throw new BusinessException(
-          "Plafond '" + plafond.getName() + "' tidak bisa diubah karena masih digunakan oleh beberapa customer.");
-    }
-
-    // VALIDASI SAFE-UPDATE 2: Cek apakah ada riwayat pinjaman yang merujuk paket
-    // ini
-    if (loanApplicationRepository.existsByPlafondId(id)) {
-      throw new BusinessException(
-          "Plafond '" + plafond.getName() + "' tidak bisa diubah karena memiliki riwayat pengajuan pinjaman.");
-    }
-
-    if (!plafond.getName().equalsIgnoreCase(request.getName())
-        && plafondRepository.existsByName(request.getName())) {
-      throw new DuplicateResourceException(
-          "Nama plafond " + request.getName() + " sudah digunakan");
-    }
-
-    plafond.setName(request.getName());
-    plafond.setDescription(request.getDescription());
-    plafond.setMaxAmount(request.getMaxAmount());
-    plafond.setInterestRate(request.getInterestRate());
-    plafond.setTenorMin(request.getTenorMin());
-    plafond.setTenorMax(request.getTenorMax());
 
     return toResponse(plafondRepository.save(plafond));
   }
@@ -143,19 +100,6 @@ public class PlafondService {
 
     plafond.softDelete();
     plafondRepository.save(plafond);
-  }
-
-  /** Restore plafond yang sudah di-soft delete */
-  @Transactional
-
-  public PlafondResponse restorePlafond(Long id) {
-    Plafond plafond = plafondRepository
-        .findByIdIncludeDeleted(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
-
-    plafond.restore();
-    return toResponse(plafondRepository.save(plafond));
   }
 
   /** Mapping Entity ke Response DTO */

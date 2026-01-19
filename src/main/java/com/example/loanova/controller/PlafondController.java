@@ -33,7 +33,7 @@ public class PlafondController {
    * perlu login.
    * Berguna untuk landing page atau halaman informasi produk.
    */
-  //Plafond Public
+  // Plafond Public
   @GetMapping("/public")
   public ResponseEntity<ApiResponse<List<PlafondResponse>>> getPublicPlafonds() {
     List<PlafondResponse> plafonds = plafondService.getAllPlafonds();
@@ -69,22 +69,6 @@ public class PlafondController {
   }
 
   /**
-   * MENGUPDATE DATA PLAFOND
-   *
-   * @param id      ID plafond yang akan diupdate
-   * @param request Data baru plafond
-   * @return Data plafond yang telah berhasil diupdate
-   */
-  // Yang bisa akses updatePlafond hanya SUPERADMIN
-  @PreAuthorize("hasAuthority('PLAFOND:UPDATE')")
-  @PutMapping("/{id}")
-  public ResponseEntity<ApiResponse<PlafondResponse>> updatePlafond(
-      @PathVariable Long id, @Valid @RequestBody PlafondRequest request) {
-    PlafondResponse plafond = plafondService.updatePlafond(id, request);
-    return ResponseUtil.ok(plafond, "Berhasil memperbarui data plafond");
-  }
-
-  /**
    * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa
    * menghilangkannya dari
    * database.
@@ -95,17 +79,5 @@ public class PlafondController {
   public ResponseEntity<ApiResponse<Void>> deletePlafond(@PathVariable Long id) {
     plafondService.deletePlafond(id);
     return ResponseUtil.ok(null, "Berhasil menghapus plafond");
-  }
-
-  /**
-   * MEMULIHKAN PLAFOND (RESTORE) Mengaktifkan kembali data yang sebelumnya telah
-   * di-soft delete.
-   */
-  // Yang bisa akses restorePlafond hanya SUPERADMIN
-  @PreAuthorize("hasAuthority('PLAFOND:RESTORE')")
-  @PutMapping("/{id}/restore")
-  public ResponseEntity<ApiResponse<PlafondResponse>> restorePlafond(@PathVariable Long id) {
-    PlafondResponse plafond = plafondService.restorePlafond(id);
-    return ResponseUtil.ok(plafond, "Berhasil me-restore data plafond");
   }
 }

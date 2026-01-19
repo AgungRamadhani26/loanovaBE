@@ -86,9 +86,7 @@ public class PermissionSeeder implements CommandLineRunner {
                                 createPermissionIfNotFound("PLAFOND:READ", "Melihat daftar plafond"),
                                 createPermissionIfNotFound("PLAFOND:DETAILS", "Melihat detail plafond"),
                                 createPermissionIfNotFound("PLAFOND:CREATE", "Menambah plafond baru"),
-                                createPermissionIfNotFound("PLAFOND:UPDATE", "Mengubah data plafond"),
                                 createPermissionIfNotFound("PLAFOND:DELETE", "Menghapus plafond"),
-                                createPermissionIfNotFound("PLAFOND:RESTORE", "Memulihkan plafond"),
 
                                 // USER PLAFOND Assignment
                                 createPermissionIfNotFound("USER_PLAFOND:ASSIGN", "Assign plafond ke user"),
