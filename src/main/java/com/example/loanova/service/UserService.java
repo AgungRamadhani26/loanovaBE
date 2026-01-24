@@ -139,11 +139,43 @@ public class UserService {
         && userRepository.existsByEmail(request.getEmail())) {
       throw new DuplicateResourceException("Email sudah digunakan");
     }
-    // Ambil roles
+
+    // VALIDASI KEAMANAN: Role CUSTOMER bersifat permanen (tidak bisa diubah)
+    // Aturan:
+    // 1. CUSTOMER tidak boleh diubah ke role lain
+    // 2. Role lain tidak boleh diubah menjadi CUSTOMER
+    // 3. Perpindahan antar role staff (SUPERADMIN, BACKOFFICE, MARKETING, BRANCHMANAGER) diperbolehkan
+    boolean isCurrentlyCustomer = user.getRoles().stream()
+        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+    
+    // Ambil roles dari request
     Set<Role> roles = roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
+
+    boolean requestHasCustomerRole = roles.stream()
+        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+
+    // Validasi 1: CUSTOMER tidak boleh diubah ke role lain
+    if (isCurrentlyCustomer && !requestHasCustomerRole) {
+      throw new BusinessException("Role CUSTOMER tidak dapat diubah ke role lain.");
+    }
+
+    // Validasi 2: CUSTOMER tidak boleh ditambahi role lain
+    if (isCurrentlyCustomer && requestHasCustomerRole) {
+      boolean hasOtherRoles = roles.stream()
+          .anyMatch(r -> !r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+      if (hasOtherRoles) {
+        throw new BusinessException("User CUSTOMER tidak dapat memiliki role tambahan.");
+      }
+    }
+
+    // Validasi 3: Role staff tidak boleh diubah menjadi CUSTOMER
+    if (!isCurrentlyCustomer && requestHasCustomerRole) {
+      throw new BusinessException("Role staff tidak dapat diubah menjadi CUSTOMER. Silakan buat akun baru jika diperlukan.");
+    }
+
     // Cek apakah ada role MARKETING atau BRANCHMANAGER
     boolean requiresBranch = roles.stream()
         .anyMatch(

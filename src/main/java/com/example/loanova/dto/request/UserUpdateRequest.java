@@ -15,7 +15,7 @@ public class UserUpdateRequest {
   @Email(message = "Format email tidak valid")
   private String email;
 
-  // Boleh null untuk customer
+  // Boleh null
   private Long branchId;
 
   @NotNull(message = "Status aktif wajib diisi")
