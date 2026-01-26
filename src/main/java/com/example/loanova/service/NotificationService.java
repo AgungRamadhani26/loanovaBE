@@ -19,6 +19,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     /**
      * Membuat notifikasi baru untuk user tertentu
@@ -34,6 +35,11 @@ public class NotificationService {
                 .build();
         
         notificationRepository.save(notification);
+
+        // Send Push Notification if user has FCM token
+        if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+            fcmService.sendNotification(user.getFcmToken(), title, message);
+        }
     }
 
     /**

@@ -211,6 +211,10 @@ public class AuthService implements UserDetailsService {
       authenticationManager.authenticate(
           new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
+      // DEBUG LOG
+      System.out.println("LOGIN REQUEST USERNAME: " + request.getUsername());
+      System.out.println("LOGIN REQUEST FCM TOKEN: " + request.getFcmToken());
+
       // STEP 2: Get user dari database
       // Kalau sampai sini, berarti username & password BENAR
       User user = userRepository
@@ -220,6 +224,12 @@ public class AuthService implements UserDetailsService {
       // STEP 3: Check apakah user aktif
       if (Boolean.FALSE.equals(user.getIsActive())) {
         throw new BusinessException("User tidak aktif");
+      }
+
+      // STEP 3.5: Save FCM Token if present (from login request)
+      if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()) {
+        user.setFcmToken(request.getFcmToken());
+        userRepository.save(user);
       }
 
       // STEP 4: Load UserDetails (format Spring Security)

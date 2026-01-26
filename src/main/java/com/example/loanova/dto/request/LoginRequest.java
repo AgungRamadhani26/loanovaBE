@@ -11,4 +11,6 @@ public class LoginRequest {
 
   @NotBlank(message = "Password tidak boleh kosong")
   private String password;
+
+  private String fcmToken;
 }

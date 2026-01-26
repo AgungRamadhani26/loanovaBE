@@ -29,6 +29,9 @@ public class User extends BaseEntity {
   @Column(name = "is_active", nullable = false)
   private Boolean isActive;
 
+  @Column(name = "fcm_token")
+  private String fcmToken;
+
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(
       name = "user_roles",
