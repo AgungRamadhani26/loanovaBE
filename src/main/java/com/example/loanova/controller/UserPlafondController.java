@@ -50,4 +50,16 @@ public class UserPlafondController {
       UserPlafondResponse response = userPlafondService.getActiveUserPlafond(userId);
       return ResponseUtil.ok(response, "Berhasil mengambil data plafond user");
    }
+
+   /**
+    * GET USER PLAFOND HISTORY
+    * Mendapatkan SEMUA riwayat plafond dari user (active + inactive).
+    */
+   @PreAuthorize("hasAuthority('USER_PLAFOND:HISTORY')")
+   @GetMapping("/users/{userId}/history")
+   public ResponseEntity<ApiResponse<java.util.List<UserPlafondResponse>>> getUserPlafondHistory(
+         @PathVariable Long userId) {
+      java.util.List<UserPlafondResponse> response = userPlafondService.getUserPlafondHistory(userId);
+      return ResponseUtil.ok(response, "Berhasil mengambil riwayat plafond user");
+   }
 }

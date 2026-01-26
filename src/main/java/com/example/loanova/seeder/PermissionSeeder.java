@@ -91,6 +91,7 @@ public class PermissionSeeder implements CommandLineRunner {
                                 // USER PLAFOND Assignment
                                 createPermissionIfNotFound("USER_PLAFOND:ASSIGN", "Assign plafond ke user"),
                                 createPermissionIfNotFound("USER_PLAFOND:READ", "Melihat plafond aktif user"),
+                                createPermissionIfNotFound("USER_PLAFOND:HISTORY", "Melihat riwayat plafond user"),
 
                                 // PROFILE Management
                                 createPermissionIfNotFound("PROFILE:COMPLETE", "Melengkapi data profil"),
@@ -111,7 +112,7 @@ public class PermissionSeeder implements CommandLineRunner {
                                 "BRANCH:READ", "BRANCH:CREATE", "BRANCH:UPDATE", "BRANCH:DELETE", "BRANCH:RESTORE",
                                 "PLAFOND:READ", "PLAFOND:DETAILS", "PLAFOND:CREATE", "PLAFOND:UPDATE", "PLAFOND:DELETE",
                                 "PLAFOND:RESTORE",
-                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ",
+                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
                                 "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY"))));
 
                 // MARKETING:
@@ -128,7 +129,7 @@ public class PermissionSeeder implements CommandLineRunner {
                 assignPermissionsToRole("BACKOFFICE", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY", "LOAN:LIST_WAITING_DISBURSE",
                                 "LOAN:DISBURSE", "LOAN:REJECT_BACKOFFICE",
-                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ"))));
+                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY"))));
 
                 // CUSTOMER:
                 assignPermissionsToRole("CUSTOMER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(

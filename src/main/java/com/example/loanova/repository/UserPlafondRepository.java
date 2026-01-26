@@ -42,4 +42,10 @@ public interface UserPlafondRepository extends JpaRepository<UserPlafond, Long> 
   default boolean existsByPlafondId(Long plafondId) {
     return countByPlafondIdNative(plafondId) > 0;
   }
+
+  /**
+   * Mendapatkan semua riwayat plafond user (active + inactive).
+   * Diurutkan dari yang terbaru.
+   */
+  java.util.List<UserPlafond> findAllByUserOrderByAssignedAtDesc(User user);
 }

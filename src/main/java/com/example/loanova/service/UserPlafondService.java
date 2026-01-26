@@ -117,6 +117,27 @@ public class UserPlafondService {
       return toResponse(userPlafond);
    }
 
+   /**
+    * GET USER PLAFOND HISTORY Mendapatkan SEMUA riwayat plafond dari user (active + inactive).
+    * Diurutkan dari yang terbaru.
+    *
+    * @param userId ID user
+    * @return List of UserPlafondResponse
+    */
+   @Transactional(readOnly = true)
+   public java.util.List<UserPlafondResponse> getUserPlafondHistory(Long userId) {
+      User user = userRepository
+            .findById(userId)
+            .orElseThrow(
+                  () -> new ResourceNotFoundException("User dengan ID " + userId + " tidak ditemukan"));
+
+      return userPlafondRepository
+            .findAllByUserOrderByAssignedAtDesc(user)
+            .stream()
+            .map(this::toResponse)
+            .toList();
+   }
+
    /** Mapper Entity to Response DTO. */
    private UserPlafondResponse toResponse(UserPlafond userPlafond) {
       return UserPlafondResponse.builder()
