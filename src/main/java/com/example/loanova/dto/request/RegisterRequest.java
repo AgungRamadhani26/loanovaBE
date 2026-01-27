@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class RegisterRequest {
 
   @NotBlank(message = "Username tidak boleh kosong")
-  @Size(min = 3, max = 50, message = "Username harus antara 3 sampai 50 karakter")
+  @Size(max = 50, message = "Username maksimal 50 karakter")
   private String username;
 
   @NotBlank(message = "Email tidak boleh kosong")
