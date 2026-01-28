@@ -99,7 +99,7 @@ public class AuthController {
   public ResponseEntity<ApiResponse<Void>> logout(
       @RequestHeader("Authorization") String authHeader,
       @Valid @RequestBody RefreshTokenRequest request) {
-    String accessToken = authHeader.substring(7);
+    String accessToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
     authService.logout(accessToken, request.getRefreshToken());
     return ResponseUtil.success(null, "Logout berhasil", HttpStatus.OK);
   }
@@ -136,7 +136,7 @@ public class AuthController {
     String username = authentication.getName();
 
     // Ambil raw access token (hilangkan "Bearer ")
-    String accessToken = authHeader.substring(7);
+    String accessToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
 
     authService.changePassword(username, accessToken, request);
 
