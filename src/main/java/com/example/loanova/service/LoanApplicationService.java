@@ -56,7 +56,6 @@ public class LoanApplicationService {
                   String username, LoanApplicationRequest request) {
             // 1. Convert dan validasi input numerik dari String
             Long branchId;
-            Long plafondId;
             BigDecimal amount;
             Integer tenor;
             Double latitude;
@@ -64,7 +63,7 @@ public class LoanApplicationService {
 
             try {
                   branchId = Long.parseLong(request.getBranchId().trim());
-                  plafondId = Long.parseLong(request.getPlafondId().trim());
+                  // plafondId no longer needed from request
                   amount = new BigDecimal(request.getAmount().trim());
                   tenor = Integer.parseInt(request.getTenor().trim());
                   latitude = Double.parseDouble(request.getLatitude().trim());
@@ -78,9 +77,7 @@ public class LoanApplicationService {
             if (branchId <= 0) {
                   throw new BusinessException("Branch ID harus lebih besar dari 0");
             }
-            if (plafondId <= 0) {
-                  throw new BusinessException("Plafond ID harus lebih besar dari 0");
-            }
+            // plafondId validation removed
             if (amount.compareTo(BigDecimal.ZERO) <= 0) {
                   throw new BusinessException("Jumlah pinjaman harus lebih besar dari 0");
             }
@@ -127,12 +124,7 @@ public class LoanApplicationService {
                                     () -> new BusinessException(
                                                 "Anda belum memiliki plafond aktif. Silakan hubungi marketing agar dibantu proses plafond"));
 
-            // 7. Validasi plafond yang dipilih sesuai dengan plafond aktif
-            if (!userPlafond.getPlafond().getId().equals(plafondId)) {
-                  throw new BusinessException(
-                              "Plafond yang dipilih tidak sesuai dengan plafond aktif Anda");
-            }
-
+            // 7. Ambil plafond dari userPlafond active (Source of Truth)
             Plafond plafond = userPlafond.getPlafond();
 
             // 8. Validasi amount tidak melebihi remaining amount

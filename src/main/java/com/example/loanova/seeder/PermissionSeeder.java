@@ -133,6 +133,7 @@ public class PermissionSeeder implements CommandLineRunner {
 
                 // CUSTOMER:
                 assignPermissionsToRole("CUSTOMER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
+                                "BRANCH:READ", // Added BRANCH:READ as CUSTOMER needs to select branch
                                 "LOAN:SUBMIT", "LOAN:READ_MY", "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
                                 "PROFILE:COMPLETE", "PROFILE:UPDATE", "PROFILE:READ_MY",
                                 "USER_PLAFOND:READ"))));

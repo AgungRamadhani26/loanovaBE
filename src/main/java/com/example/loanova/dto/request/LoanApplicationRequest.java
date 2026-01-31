@@ -22,8 +22,6 @@ public class LoanApplicationRequest {
   @NotBlank(message = "Branch ID wajib diisi")
   private String branchId;
 
-  @NotBlank(message = "Plafond ID wajib diisi")
-  private String plafondId;
 
   @NotBlank(message = "Jumlah pinjaman wajib diisi")
   private String amount;

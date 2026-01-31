@@ -90,7 +90,7 @@ This document provides a comprehensive list of all granular permissions availabl
 | **MARKETING**     | Discovery of branches and full processing of the Initial Review stage. |
 | **BRANCHMANAGER** | Discovery of branches and full processing of the Approval stage.       |
 | **BACKOFFICE**    | Full processing of Disbursement stage and Plafond Assignment.          |
-| **CUSTOMER**      | Submission of loans, tracking own status, and profile management.      |
+| **CUSTOMER**      | Discovery of branches, submission of loans, tracking own status, and profile management. |
 
 > [!NOTE]
 > _SUPERADMIN permissions for LOAN:SUBMIT and LOAN:READ_MY were intentionally omitted per strict controller comments analysis to ensure separation of duties._
