@@ -49,4 +49,8 @@ public class LoanApplicationResponse {
   private String npwpPhotoSnapshot;
   private String savingBookCover;
   private String payslipPhoto;
+
+  // Lokasi pengajuan
+  private Double latitude;
+  private Double longitude;
 }

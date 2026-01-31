@@ -59,15 +59,19 @@ public class LoanApplicationService {
             Long plafondId;
             BigDecimal amount;
             Integer tenor;
+            Double latitude;
+            Double longitude;
 
             try {
                   branchId = Long.parseLong(request.getBranchId().trim());
                   plafondId = Long.parseLong(request.getPlafondId().trim());
                   amount = new BigDecimal(request.getAmount().trim());
                   tenor = Integer.parseInt(request.getTenor().trim());
+                  latitude = Double.parseDouble(request.getLatitude().trim());
+                  longitude = Double.parseDouble(request.getLongitude().trim());
             } catch (NumberFormatException e) {
                   throw new BusinessException(
-                              "Format input tidak valid. Pastikan branch ID, plafond ID, amount, dan tenor berisi angka yang valid");
+                              "Format input tidak valid. Pastikan branch ID, plafond ID, amount, tenor, latitude, dan longitude berisi angka yang valid");
             }
 
             // Validasi nilai harus positif
@@ -82,6 +86,13 @@ public class LoanApplicationService {
             }
             if (tenor <= 0) {
                   throw new BusinessException("Tenor harus lebih besar dari 0");
+            }
+            // Validasi koordinat GPS
+            if (latitude < -90 || latitude > 90) {
+                  throw new BusinessException("Latitude harus antara -90 dan 90");
+            }
+            if (longitude < -180 || longitude > 180) {
+                  throw new BusinessException("Longitude harus antara -180 dan 180");
             }
 
             // 2. Ambil user yang login
@@ -184,6 +195,9 @@ public class LoanApplicationService {
                               // Foto dokumen baru
                               .savingBookCover(savingBookCoverPath)
                               .payslipPhoto(payslipPhotoPath)
+                              // Lokasi pengajuan
+                              .latitude(latitude)
+                              .longitude(longitude)
                               .build();
 
                   LoanApplication savedApplication = loanApplicationRepository.save(loanApplication);
@@ -739,6 +753,8 @@ public class LoanApplicationService {
                         .npwpPhotoSnapshot(application.getNpwpPhotoSnapshot())
                         .savingBookCover(application.getSavingBookCover())
                         .payslipPhoto(application.getPayslipPhoto())
+                        .latitude(application.getLatitude())
+                        .longitude(application.getLongitude())
                         .build();
       }
 

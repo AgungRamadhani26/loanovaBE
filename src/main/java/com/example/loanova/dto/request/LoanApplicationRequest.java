@@ -48,4 +48,11 @@ public class LoanApplicationRequest {
 
   @ValidFile(message = "Foto slip gaji wajib diunggah", required = true)
   private MultipartFile payslipPhoto;
+
+  // Lokasi pengajuan (GPS) - Wajib diisi
+  @NotBlank(message = "Latitude wajib diisi")
+  private String latitude;
+
+  @NotBlank(message = "Longitude wajib diisi")
+  private String longitude;
 }

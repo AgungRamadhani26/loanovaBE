@@ -102,6 +102,13 @@ public class LoanApplication {
    @Column(name = "payslip_photo", nullable = false, length = 255)
    private String payslipPhoto;
 
+   // LOKASI PENGAJUAN - Koordinat GPS saat submit
+   @Column(name = "latitude", nullable = false)
+   private Double latitude;
+
+   @Column(name = "longitude", nullable = false)
+   private Double longitude;
+
    @PrePersist
    protected void onCreate() {
       if (submittedAt == null) {
