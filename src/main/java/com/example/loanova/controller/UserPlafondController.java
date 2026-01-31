@@ -9,6 +9,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.example.loanova.entity.User;
+import com.example.loanova.repository.UserRepository;
+import com.example.loanova.exception.ResourceNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserPlafondController {
 
    private final UserPlafondService userPlafondService;
+   private final UserRepository userRepository;
 
    /**
     * ASSIGN PLAFOND KE USER Endpoint untuk SUPERADMIN assign plafond baru ke user.
@@ -42,11 +48,24 @@ public class UserPlafondController {
     * SUPERADMIN dan BACKOFFICE
     * bisa melihat plafond user lain.
     */
-   // Yang bisa akses hanya SUPERADMIN dan BACKOFFICE
+   // Yang bisa akses hanya SUPERADMIN dan BACKOFFICE (Dan CUSTOMER untuk diri sendiri)
    @PreAuthorize("hasAuthority('USER_PLAFOND:READ')")
    @GetMapping("/users/{userId}/active")
    public ResponseEntity<ApiResponse<UserPlafondResponse>> getActiveUserPlafond(
-         @PathVariable Long userId) {
+         @PathVariable Long userId, Authentication authentication) {
+
+      String currentUsername = authentication.getName();
+      User currentUser = userRepository.findByUsername(currentUsername)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+      boolean isSelf = currentUser.getId().equals(userId);
+      boolean isAdmin = currentUser.getRoles().stream()
+            .anyMatch(role -> role.getRoleName().equals("SUPERADMIN") || role.getRoleName().equals("BACKOFFICE"));
+
+      if (!isSelf && !isAdmin) {
+         throw new AccessDeniedException("Anda hanya dapat melihat plafond aktif diri sendiri");
+      }
+
       UserPlafondResponse response = userPlafondService.getActiveUserPlafond(userId);
       return ResponseUtil.ok(response, "Berhasil mengambil data plafond user");
    }
