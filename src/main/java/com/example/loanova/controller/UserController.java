@@ -38,6 +38,15 @@ public class UserController {
     return ResponseUtil.ok(user, "Berhasil mengambil data pengguna");
   }
 
+  // GET USER BY USERNAME (OWN PROFILE)
+  // User hanya bisa mengakses profil miliknya sendiri
+  @PreAuthorize("isAuthenticated() and #username == authentication.name")
+  @GetMapping("/by-username/{username}")
+  public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
+    UserResponse user = userService.getUserByUsername(username);
+    return ResponseUtil.ok(user, "Berhasil mengambil data pengguna");
+  }
+
   // CREATE USER
   // Yang bisa akses hanya SUPERADMIN
   @PreAuthorize("hasAuthority('USER:CREATE')")

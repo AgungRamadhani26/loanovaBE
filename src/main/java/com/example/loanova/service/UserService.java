@@ -70,6 +70,17 @@ public class UserService {
     return toResponse(user);
   }
 
+  /*
+   * Mendapatkan User berdasarkan username
+   */
+  public UserResponse getUserByUsername(String username) {
+    User user = userRepository
+        .findByUsername(username)
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan username " + username));
+    return toResponse(user);
+  }
+
   /* Menambahkan User baru ke dalam sistem */
   @Transactional
   public UserResponse createUser(UserRequest request) {
