@@ -26,6 +26,7 @@ public class LoanApplicationResponse {
   private String plafondName;
   private BigDecimal amount;
   private Integer tenor;
+  private BigDecimal interestRateSnapshot; // Bunga saat pengajuan
   private String status;
   private LocalDateTime submittedAt;
 

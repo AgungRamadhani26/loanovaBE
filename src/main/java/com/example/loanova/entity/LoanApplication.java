@@ -109,6 +109,10 @@ public class LoanApplication {
    @Column(name = "longitude", nullable = false)
    private Double longitude;
 
+   // SNAPSHOT INTEREST RATE - Bunga yang berlaku saat pengajuan
+   @Column(name = "interest_rate_snapshot", nullable = false, precision = 5, scale = 2)
+   private BigDecimal interestRateSnapshot;
+
    @PrePersist
    protected void onCreate() {
       if (submittedAt == null) {

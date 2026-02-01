@@ -168,6 +168,7 @@ public class LoanApplicationService {
                               .plafond(plafond)
                               .amount(amount)
                               .tenor(tenor)
+                              .interestRateSnapshot(plafond.getInterestRate()) // Snapshot bunga dari plafond
                               .status(LoanApplicationStatus.PENDING_REVIEW.name())
                               // Snapshot data pribadi dari user profile
                               .fullNameSnapshot(userProfile.getFullName())
@@ -730,6 +731,7 @@ public class LoanApplicationService {
                         .plafondName(application.getPlafond().getName())
                         .amount(application.getAmount())
                         .tenor(application.getTenor())
+                        .interestRateSnapshot(application.getInterestRateSnapshot())
                         .status(application.getStatus())
                         .submittedAt(application.getSubmittedAt())
                         .fullNameSnapshot(application.getFullNameSnapshot())
