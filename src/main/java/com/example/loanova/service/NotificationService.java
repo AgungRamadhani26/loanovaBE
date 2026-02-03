@@ -22,23 +22,32 @@ public class NotificationService {
     private final FcmService fcmService;
 
     /**
-     * Membuat notifikasi baru untuk user tertentu
+     * Membuat notifikasi baru untuk user tertentu (tanpa loan application ID)
      */
     @Transactional
     public void createNotification(User user, String title, String message) {
+        createNotification(user, title, message, null);
+    }
+
+    /**
+     * Membuat notifikasi baru untuk user tertentu dengan loan application ID
+     */
+    @Transactional
+    public void createNotification(User user, String title, String message, Long loanApplicationId) {
         Notification notification = Notification.builder()
                 .user(user)
                 .title(title)
                 .message(message)
+                .loanApplicationId(loanApplicationId)
                 .isRead(false)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         notificationRepository.save(notification);
 
         // Send Push Notification if user has FCM token
         if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
-            fcmService.sendNotification(user.getFcmToken(), title, message);
+            fcmService.sendNotification(user.getFcmToken(), title, message, loanApplicationId);
         }
     }
 
@@ -83,10 +92,11 @@ public class NotificationService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
 
-        List<Notification> unreadNotifications = notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
-        
+        List<Notification> unreadNotifications = notificationRepository
+                .findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
+
         unreadNotifications.forEach(notification -> notification.setIsRead(true));
-        
+
         notificationRepository.saveAll(unreadNotifications);
     }
 
@@ -95,6 +105,7 @@ public class NotificationService {
                 .id(notification.getId())
                 .title(notification.getTitle())
                 .message(notification.getMessage())
+                .loanApplicationId(notification.getLoanApplicationId())
                 .isRead(notification.getIsRead())
                 .createdAt(notification.getCreatedAt())
                 .build();

@@ -273,12 +273,14 @@ public class LoanApplicationService {
 
             // 1. Cek SUPERADMIN / BACKOFFICE (Bebas akses)
             if (user.getRoles().stream()
-                        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN") || r.getRoleName().equalsIgnoreCase("BACKOFFICE"))) {
+                        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN")
+                                    || r.getRoleName().equalsIgnoreCase("BACKOFFICE"))) {
                   hasAccess = true;
             }
             // 2. Cek MARKETING / BRANCHMANAGER (Sesuai branch)
             else if (user.getRoles().stream().anyMatch(
-                        r -> r.getRoleName().equalsIgnoreCase("MARKETING") || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"))) {
+                        r -> r.getRoleName().equalsIgnoreCase("MARKETING")
+                                    || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"))) {
                   if (user.getBranch() != null &&
                               application.getBranch().getId().equals(user.getBranch().getId())) {
                         hasAccess = true;
@@ -369,9 +371,10 @@ public class LoanApplicationService {
 
                   // NOTIFIKASI CUSTOMER
                   notificationService.createNotification(
-                        application.getUser(),
-                        "Pengajuan Pinjaman Diproses",
-                        "Pengajuan pinjaman Anda telah diproses oleh Marketing dan sekarang menunggu persetujuan Branch Manager.");
+                              application.getUser(),
+                              "Pengajuan Pinjaman Diproses",
+                              "Pengajuan pinjaman Anda telah diproses oleh Marketing dan sekarang menunggu persetujuan Branch Manager.",
+                              application.getId());
             } else {
                   // Reject -> kembalikan remaining amount
                   application.setStatus(LoanApplicationStatus.REJECTED.name());
@@ -399,9 +402,11 @@ public class LoanApplicationService {
 
                   // NOTIFIKASI CUSTOMER
                   notificationService.createNotification(
-                        application.getUser(),
-                        "Pengajuan Pinjaman Ditolak",
-                        "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Marketing. Alasan: " + request.getComment());
+                              application.getUser(),
+                              "Pengajuan Pinjaman Ditolak",
+                              "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Marketing. Alasan: "
+                                          + request.getComment(),
+                              application.getId());
             }
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
@@ -417,31 +422,33 @@ public class LoanApplicationService {
       @Transactional(readOnly = true)
       public List<LoanApplicationResponse> getAllApplications(String username) {
             User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
+                        .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
 
             List<String> roles = user.getRoles().stream()
-                    .map(Role::getRoleName)
-                    .collect(Collectors.toList());
-            
+                        .map(Role::getRoleName)
+                        .collect(Collectors.toList());
+
             List<LoanApplication> applications;
 
             if (roles.contains("SUPERADMIN") || roles.contains("BACKOFFICE")) {
-                // SUPERADMIN & BACKOFFICE: See ALL
-                applications = loanApplicationRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt"));
+                  // SUPERADMIN & BACKOFFICE: See ALL
+                  applications = loanApplicationRepository.findAll(org.springframework.data.domain.Sort
+                              .by(org.springframework.data.domain.Sort.Direction.DESC, "submittedAt"));
             } else if (roles.contains("MARKETING") || roles.contains("BRANCHMANAGER")) {
-                // MARKETING & BRANCHMANAGER: See Branch Only
-                if (user.getBranch() == null) {
-                    throw new BusinessException("User staff tidak memiliki assignment branch");
-                }
-                applications = loanApplicationRepository.findByBranchIdOrderBySubmittedAtDesc(user.getBranch().getId());
+                  // MARKETING & BRANCHMANAGER: See Branch Only
+                  if (user.getBranch() == null) {
+                        throw new BusinessException("User staff tidak memiliki assignment branch");
+                  }
+                  applications = loanApplicationRepository
+                              .findByBranchIdOrderBySubmittedAtDesc(user.getBranch().getId());
             } else {
-                // CUSTOMER (or others): See Own Only
-                applications = loanApplicationRepository.findByUserOrderBySubmittedAtDesc(user);
+                  // CUSTOMER (or others): See Own Only
+                  applications = loanApplicationRepository.findByUserOrderBySubmittedAtDesc(user);
             }
 
             return applications.stream()
-                    .map(this::toResponse)
-                    .collect(Collectors.toList());
+                        .map(this::toResponse)
+                        .collect(Collectors.toList());
       }
 
       /**
@@ -515,9 +522,10 @@ public class LoanApplicationService {
 
                   // NOTIFIKASI CUSTOMER
                   notificationService.createNotification(
-                        application.getUser(),
-                        "Pengajuan Pinjaman Disetujui",
-                        "Selamat! Pengajuan pinjaman Anda telah disetujui oleh Branch Manager dan sedang menunggu pencairan dana.");
+                              application.getUser(),
+                              "Pengajuan Pinjaman Disetujui",
+                              "Selamat! Pengajuan pinjaman Anda telah disetujui oleh Branch Manager dan sedang menunggu pencairan dana.",
+                              application.getId());
             } else {
                   // Reject -> kembalikan remaining amount
                   application.setStatus(LoanApplicationStatus.REJECTED.name());
@@ -545,9 +553,11 @@ public class LoanApplicationService {
 
                   // NOTIFIKASI CUSTOMER
                   notificationService.createNotification(
-                        application.getUser(),
-                        "Pengajuan Pinjaman Ditolak",
-                        "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Branch Manager. Alasan: " + request.getComment());
+                              application.getUser(),
+                              "Pengajuan Pinjaman Ditolak",
+                              "Mohon maaf, pengajuan pinjaman Anda ditolak oleh Branch Manager. Alasan: "
+                                          + request.getComment(),
+                              application.getId());
             }
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
@@ -600,9 +610,11 @@ public class LoanApplicationService {
 
             // NOTIFIKASI CUSTOMER
             notificationService.createNotification(
-                  application.getUser(),
-                  "Dana Pinjaman Cair!",
-                  "Kabar gembira! Dana pinjaman Anda sebesar Rp " + application.getAmount() + " telah berhasil dicairkan. Silakan cek rekening Anda.");
+                        application.getUser(),
+                        "Dana Pinjaman Cair!",
+                        "Kabar gembira! Dana pinjaman Anda sebesar Rp " + application.getAmount()
+                                    + " telah berhasil dicairkan. Silakan cek rekening Anda.",
+                        application.getId());
             // TODO: Kirim notifikasi via Email/WA real (Future Improvement)
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
@@ -613,7 +625,8 @@ public class LoanApplicationService {
        * REJECT BY BACKOFFICE - Backoffice menolak pencairan
        */
       @Transactional
-      public LoanApplicationResponse rejectByBackoffice(String username, Long applicationId, LoanReviewRequest request) {
+      public LoanApplicationResponse rejectByBackoffice(String username, Long applicationId,
+                  LoanReviewRequest request) {
             User user = userRepository
                         .findByUsername(username)
                         .orElseThrow(() -> new ResourceNotFoundException("User tidak ditemukan"));
@@ -656,9 +669,11 @@ public class LoanApplicationService {
 
             // NOTIFIKASI CUSTOMER
             notificationService.createNotification(
-                  application.getUser(),
-                  "Pencairan Pinjaman Ditolak",
-                  "Mohon maaf, proses pencairan pinjaman Anda ditolak oleh Backoffice. Alasan: " + request.getComment());
+                        application.getUser(),
+                        "Pencairan Pinjaman Ditolak",
+                        "Mohon maaf, proses pencairan pinjaman Anda ditolak oleh Backoffice. Alasan: "
+                                    + request.getComment(),
+                        application.getId());
 
             LoanApplication savedApplication = loanApplicationRepository.save(application);
             return toResponse(savedApplication);

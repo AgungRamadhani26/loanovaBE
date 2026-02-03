@@ -10,6 +10,7 @@ public class NotificationResponse {
     private Long id;
     private String title;
     private String message;
+    private Long loanApplicationId;
     private Boolean isRead;
     private LocalDateTime createdAt;
 }

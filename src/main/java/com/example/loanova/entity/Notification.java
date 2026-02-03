@@ -38,6 +38,9 @@ public class Notification {
     @Column(name = "message", nullable = false)
     private String message;
 
+    @Column(name = "loan_application_id")
+    private Long loanApplicationId;
+
     @Column(name = "is_read", nullable = false)
     @Builder.Default
     private Boolean isRead = false;
