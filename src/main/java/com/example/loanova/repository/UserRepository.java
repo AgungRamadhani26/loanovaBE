@@ -58,4 +58,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
       "JOIN roles r ON ur.role_id = r.id " +
       "WHERE r.role_name = :roleName AND u.is_active = 1 AND u.deleted_at IS NULL", nativeQuery = true)
   long countByRolesRoleNameAndIsActiveTrue(@Param("roleName") String roleName);
+
+  /**
+   * Cari user berdasarkan Google ID (untuk Google Sign-In).
+   * Digunakan untuk login dengan akun Google yang sudah terdaftar.
+   */
+  Optional<User> findByGoogleId(String googleId);
 }

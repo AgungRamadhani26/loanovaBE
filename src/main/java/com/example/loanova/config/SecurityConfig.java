@@ -80,6 +80,7 @@ public class SecurityConfig {
                                         "/api/auth/refresh",
                                         "/api/auth/forgot-password",
                                         "/api/auth/reset-password",
+                                        "/api/auth/firebase-google", // Google Sign-In via Firebase
                                         "/api/plafonds/public", // Public access untuk melihat list plafond
                                         "/uploads/**", // Allow public access to uploaded files
                                         "/v3/api-docs/**",

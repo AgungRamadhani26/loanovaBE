@@ -1,6 +1,7 @@
 package com.example.loanova.service;
 
 import com.example.loanova.dto.request.ChangePasswordRequest;
+import com.example.loanova.dto.request.FirebaseGoogleLoginRequest;
 import com.example.loanova.dto.request.LoginRequest;
 import com.example.loanova.dto.request.RegisterRequest;
 import com.example.loanova.dto.response.AuthResponse;
@@ -21,6 +22,9 @@ import com.example.loanova.repository.RoleRepository;
 import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -162,7 +166,8 @@ public class AuthService implements UserDetailsService {
     // Ambil plafond Bronze berdasarkan nama
     Plafond bronzePlafond = plafondRepository
         .findByName("BRONZE")
-        .orElseThrow(() -> new BusinessException("Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
+        .orElseThrow(() -> new BusinessException(
+            "Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
 
     // Create user plafond dengan max_amount dari Bronze
     UserPlafond userPlafond = UserPlafond.builder()
@@ -303,28 +308,28 @@ public class AuthService implements UserDetailsService {
     // org.springframework.security.core.userdetails.User = class dari Spring
     // Security
     // BUKAN entity User kita!
-        // authorities: roles & permissions user untuk authorization
-        // 1. Roles: Map Role entity → GrantedAuthority dengan prefix "ROLE_"
-        // 2. Permissions: Map Permission entity → GrantedAuthority tanpa prefix
-        java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+    // authorities: roles & permissions user untuk authorization
+    // 1. Roles: Map Role entity → GrantedAuthority dengan prefix "ROLE_"
+    // 2. Permissions: Map Permission entity → GrantedAuthority tanpa prefix
+    java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
 
-        user.getRoles().forEach(role -> {
-          // Add Role
-          authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
-          // Add Permissions dari Role tersebut
-          role.getPermissions().forEach(permission -> {
-            authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
-          });
-        });
+    user.getRoles().forEach(role -> {
+      // Add Role
+      authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+      // Add Permissions dari Role tersebut
+      role.getPermissions().forEach(permission -> {
+        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+      });
+    });
 
-        return new org.springframework.security.core.userdetails.User(
-            user.getUsername(),
-            user.getPassword(),
-            user.getIsActive(),
-            true,
-            true,
-            true,
-            authorities);
+    return new org.springframework.security.core.userdetails.User(
+        user.getUsername(),
+        user.getPassword(),
+        user.getIsActive(),
+        true,
+        true,
+        true,
+        authorities);
   }
 
   /**
@@ -548,5 +553,182 @@ public class AuthService implements UserDetailsService {
     // Blacklist access token ini supaya tidak bisa dipakai request lagi detik ini
     // juga
     jwtService.blacklistToken(accessToken);
+  }
+
+  /**
+   * LOGIN WITH FIREBASE GOOGLE - Handle login menggunakan Google via Firebase
+   *
+   * <p>
+   * Flow:
+   * 1. Verify Firebase ID Token menggunakan Firebase Admin SDK
+   * 2. Extract email dan Google UID dari token
+   * 3. Cek apakah user dengan Google ID sudah ada → Login langsung
+   * 4. Cek apakah user dengan email sudah ada → Link Google ID (Account Linking)
+   * 5. Jika belum ada → Create user baru dengan role CUSTOMER
+   * 6. Generate JWT tokens dan return
+   *
+   * @param request FirebaseGoogleLoginRequest dengan idToken dan fcmToken
+   * @return AuthResponse dengan access token & refresh token
+   */
+  @Transactional
+  @CacheEvict(value = "users", allEntries = true)
+  public AuthResponse loginWithFirebaseGoogle(FirebaseGoogleLoginRequest request) {
+    try {
+      // STEP 1: Verify Firebase ID Token
+      FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.getIdToken());
+
+      String googleUid = decodedToken.getUid();
+      String email = decodedToken.getEmail();
+      String name = decodedToken.getName();
+
+      System.out.println("GOOGLE LOGIN - UID: " + googleUid);
+      System.out.println("GOOGLE LOGIN - Email: " + email);
+      System.out.println("GOOGLE LOGIN - Name: " + name);
+
+      if (email == null || email.isEmpty()) {
+        throw new BusinessException("Email tidak ditemukan di akun Google Anda");
+      }
+
+      User user;
+
+      // STEP 2: Cek apakah user dengan Google ID sudah ada
+      var existingByGoogleId = userRepository.findByGoogleId(googleUid);
+
+      if (existingByGoogleId.isPresent()) {
+        // User sudah pernah login dengan Google → Login langsung
+        user = existingByGoogleId.get();
+        System.out.println("GOOGLE LOGIN - Existing user by Google ID: " + user.getUsername());
+      } else {
+        // STEP 3: Cek apakah email sudah ada (Account Linking)
+        var existingByEmail = userRepository.findByEmail(email);
+
+        if (existingByEmail.isPresent()) {
+          // Email sudah ada → Link Google ID ke akun existing
+          user = existingByEmail.get();
+          user.setGoogleId(googleUid);
+
+          // Update auth provider jika sebelumnya LOCAL
+          if ("LOCAL".equals(user.getAuthProvider())) {
+            user.setAuthProvider("GOOGLE_LINKED"); // Menandakan akun ini sudah di-link
+          }
+
+          userRepository.save(user);
+          System.out.println("GOOGLE LOGIN - Linked to existing account: " + user.getUsername());
+        } else {
+          // STEP 4: Email belum ada → Create user baru
+          user = createGoogleUser(email, googleUid, name);
+          System.out.println("GOOGLE LOGIN - Created new user: " + user.getUsername());
+        }
+      }
+
+      // STEP 5: Cek apakah user aktif
+      if (Boolean.FALSE.equals(user.getIsActive())) {
+        throw new BusinessException("Akun tidak aktif. Hubungi administrator.");
+      }
+
+      // STEP 6: Save FCM Token if present
+      if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()) {
+        user.setFcmToken(request.getFcmToken());
+        userRepository.save(user);
+      }
+
+      // STEP 7: Generate JWT tokens
+      return generateAuthResponse(user);
+
+    } catch (FirebaseAuthException e) {
+      System.err.println("Firebase Auth Error: " + e.getMessage());
+      throw new BusinessException("Token Google tidak valid atau sudah expired. Silakan coba lagi.");
+    }
+  }
+
+  /**
+   * HELPER: Create user baru untuk Google Sign-In
+   */
+  private User createGoogleUser(String email, String googleUid, String name) {
+    // Generate username dari email (bagian sebelum @)
+    String baseUsername = email.split("@")[0];
+    String username = baseUsername;
+
+    // Pastikan username unik
+    int counter = 1;
+    while (userRepository.existsByUsername(username)) {
+      username = baseUsername + counter;
+      counter++;
+    }
+
+    // Get role CUSTOMER
+    Role customerRole = roleRepository
+        .findByRoleName("CUSTOMER")
+        .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
+
+    // Create user - password NULL untuk Google user (login via Google saja)
+    User user = User.builder()
+        .username(username)
+        .email(email)
+        .password(null) // NULL untuk Google user - tidak perlu password
+        .googleId(googleUid)
+        .authProvider("GOOGLE")
+        .isActive(true)
+        .roles(new HashSet<>(Collections.singletonList(customerRole)))
+        .build();
+
+    User savedUser = userRepository.save(user);
+
+    // Create default plafond (Bronze)
+    createDefaultUserPlafond(savedUser);
+
+    return savedUser;
+  }
+
+  /**
+   * HELPER: Generate AuthResponse dengan JWT tokens
+   */
+  private AuthResponse generateAuthResponse(User user) {
+    // Build authorities for JWT claims
+    java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+    user.getRoles().forEach(role -> {
+      authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+      role.getPermissions().forEach(permission -> {
+        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+      });
+    });
+
+    // Generate tokens
+    Map<String, Object> claims = new HashMap<>();
+    claims.put("authorities", authorities.stream()
+        .map(SimpleGrantedAuthority::getAuthority)
+        .collect(Collectors.toList()));
+
+    // Create UserDetails for token generation
+    org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
+        user.getUsername(),
+        user.getPassword() != null ? user.getPassword() : "", // Empty string for Google users
+        user.getIsActive(),
+        true, true, true,
+        authorities);
+
+    String accessToken = jwtService.generateAccessToken(claims, userDetails);
+    String refreshTokenString = jwtService.generateRefreshToken(userDetails);
+
+    // Save refresh token
+    RefreshToken refreshToken = RefreshToken.builder()
+        .token(refreshTokenString)
+        .user(user)
+        .expiryDate(LocalDateTime.now().plusDays(7))
+        .build();
+    refreshTokenRepository.save(refreshToken);
+
+    // Build response
+    return AuthResponse.builder()
+        .accessToken(accessToken)
+        .refreshToken(refreshTokenString)
+        .type("Bearer")
+        .username(user.getUsername())
+        .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
+        .permissions(user.getRoles().stream()
+            .flatMap(role -> role.getPermissions().stream())
+            .map(com.example.loanova.entity.Permission::getPermissionName)
+            .collect(Collectors.toSet()))
+        .build();
   }
 }

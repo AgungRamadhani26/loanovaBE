@@ -2,6 +2,7 @@ package com.example.loanova.controller;
 
 import com.example.loanova.base.ApiResponse;
 import com.example.loanova.dto.request.ChangePasswordRequest;
+import com.example.loanova.dto.request.FirebaseGoogleLoginRequest;
 import com.example.loanova.dto.request.ForgotPasswordRequest;
 import com.example.loanova.dto.request.LoginRequest;
 import com.example.loanova.dto.request.RefreshTokenRequest;
@@ -142,5 +143,29 @@ public class AuthController {
 
     return ResponseUtil.success(
         null, "Password berhasil diubah. Silakan login kembali.", HttpStatus.OK);
+  }
+
+  /**
+   * FIREBASE GOOGLE LOGIN ENDPOINT
+   *
+   * <p>Endpoint untuk login menggunakan Google via Firebase Authentication.
+   * 
+   * <p>Flow:
+   * 1. Android melakukan Google Sign-In via Firebase
+   * 2. Android mendapatkan Firebase ID Token
+   * 3. Android kirim ID Token ke endpoint ini
+   * 4. Backend verify token dengan Firebase Admin SDK
+   * 5. Backend create/link user dan return JWT
+   *
+   * <p>Request: POST /api/auth/firebase-google
+   * Body: { "idToken": "eyJhbGc...", "fcmToken": "..." }
+   *
+   * <p>Response: Same as /api/auth/login
+   */
+  @PostMapping("/firebase-google")
+  public ResponseEntity<ApiResponse<AuthResponse>> loginWithFirebaseGoogle(
+      @Valid @RequestBody FirebaseGoogleLoginRequest request) {
+    AuthResponse authResponse = authService.loginWithFirebaseGoogle(request);
+    return ResponseUtil.success(authResponse, "Login dengan Google berhasil", HttpStatus.OK);
   }
 }
