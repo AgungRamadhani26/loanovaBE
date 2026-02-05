@@ -96,7 +96,17 @@ public class PermissionSeeder implements CommandLineRunner {
                                 // PROFILE Management
                                 createPermissionIfNotFound("PROFILE:COMPLETE", "Melengkapi data profil"),
                                 createPermissionIfNotFound("PROFILE:UPDATE", "Mengubah data profil"),
-                                createPermissionIfNotFound("PROFILE:READ_MY", "Melihat profil sendiri"));
+                                createPermissionIfNotFound("PROFILE:READ_MY", "Melihat profil sendiri"),
+
+                                // MENU Visibility (Sidebar)
+                                createPermissionIfNotFound("MENU:DASHBOARD", "Melihat menu Dashboard"),
+                                createPermissionIfNotFound("MENU:USERS", "Melihat menu Users"),
+                                createPermissionIfNotFound("MENU:BRANCH", "Melihat menu Branch"),
+                                createPermissionIfNotFound("MENU:ROLES", "Melihat menu Role Permission"),
+                                createPermissionIfNotFound("MENU:LOAN", "Melihat menu Loan Application"),
+                                createPermissionIfNotFound("MENU:HISTORY", "Melihat menu Application History"),
+                                createPermissionIfNotFound("MENU:PLAFOND", "Melihat menu Plafond"),
+                                createPermissionIfNotFound("MENU:USER_PLAFOND", "Melihat menu User Plafond"));
 
                 // Permissions for EVERY authenticated user (Roles that need base system access)
                 List<String> commonBasePermissions = Arrays.asList(
@@ -112,23 +122,32 @@ public class PermissionSeeder implements CommandLineRunner {
                                 "BRANCH:READ", "BRANCH:CREATE", "BRANCH:UPDATE", "BRANCH:DELETE", "BRANCH:RESTORE",
                                 "PLAFOND:READ", "PLAFOND:DETAILS", "PLAFOND:CREATE", "PLAFOND:DELETE",
                                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
-                                "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY"))));
+                                "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
+                                // Menu visibility
+                                "MENU:DASHBOARD", "MENU:USERS", "MENU:BRANCH", "MENU:ROLES",
+                                "MENU:LOAN", "MENU:HISTORY", "MENU:PLAFOND", "MENU:USER_PLAFOND"))));
 
                 // MARKETING:
                 assignPermissionsToRole("MARKETING", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "BRANCH:READ", "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
-                                "LOAN:LIST_PENDING_REVIEW", "LOAN:REVIEW"))));
+                                "LOAN:LIST_PENDING_REVIEW", "LOAN:REVIEW",
+                                // Menu visibility
+                                "MENU:DASHBOARD", "MENU:LOAN", "MENU:HISTORY"))));
 
                 // BRANCHMANAGER:
                 assignPermissionsToRole("BRANCHMANAGER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "BRANCH:READ", "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
-                                "LOAN:LIST_WAITING_APPROVAL", "LOAN:APPROVE"))));
+                                "LOAN:LIST_WAITING_APPROVAL", "LOAN:APPROVE",
+                                // Menu visibility
+                                "MENU:DASHBOARD", "MENU:LOAN", "MENU:HISTORY"))));
 
                 // BACKOFFICE:
                 assignPermissionsToRole("BACKOFFICE", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY", "LOAN:LIST_WAITING_DISBURSE",
                                 "LOAN:DISBURSE", "LOAN:REJECT_BACKOFFICE",
-                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY"))));
+                                "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
+                                // Menu visibility
+                                "MENU:DASHBOARD", "MENU:LOAN", "MENU:HISTORY", "MENU:USER_PLAFOND"))));
 
                 // CUSTOMER:
                 assignPermissionsToRole("CUSTOMER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(

@@ -119,14 +119,33 @@ Dokumentasi lengkap semua permission granular dalam sistem Loanova. Permission i
 
 ---
 
+### 10. Menu Visibility (Sidebar)
+**Purpose:** Kontrol visibility menu di sidebar, terpisah dari data access permissions.
+
+| Permission           | Description                              | Assigned Roles                              |
+| :------------------- | :--------------------------------------- | :------------------------------------------ |
+| `MENU:DASHBOARD`     | Melihat menu Dashboard di sidebar.       | SUPERADMIN, MARKETING, BRANCHMANAGER, BACKOFFICE |
+| `MENU:USERS`         | Melihat menu Users di sidebar.           | SUPERADMIN                                  |
+| `MENU:BRANCH`        | Melihat menu Branch di sidebar.          | SUPERADMIN                                  |
+| `MENU:ROLES`         | Melihat menu Role Permission di sidebar. | SUPERADMIN                                  |
+| `MENU:LOAN`          | Melihat menu Loan Application di sidebar.| SUPERADMIN, MARKETING, BRANCHMANAGER, BACKOFFICE |
+| `MENU:HISTORY`       | Melihat menu Application History.        | SUPERADMIN, MARKETING, BRANCHMANAGER, BACKOFFICE |
+| `MENU:PLAFOND`       | Melihat menu Plafond di sidebar.         | SUPERADMIN                                  |
+| `MENU:USER_PLAFOND`  | Melihat menu User Plafond di sidebar.    | SUPERADMIN, BACKOFFICE                      |
+
+> [!IMPORTANT]
+> **MENU:* vs *:READ**: `MENU:*` mengontrol visibility sidebar, sedangkan `*:READ` mengontrol akses data API. Contoh: MARKETING punya `BRANCH:READ` untuk dropdown, tapi tidak punya `MENU:BRANCH` sehingga menu Branch tidak muncul.
+
+---
+
 ## Role Summary Matrix
 
 | Role              | Total Permissions | Access Scope                                                              |
 | :---------------- | :---------------: | :------------------------------------------------------------------------ |
-| **SUPERADMIN**    | 26                | Full administrative control: Users, Roles, Branches, Plafonds, User Plafonds, Loan viewing. |
-| **MARKETING**     | 8                 | Branch viewing + Loan review stage (PENDING_REVIEW → WAITING_APPROVAL).  |
-| **BRANCHMANAGER** | 8                 | Branch viewing + Loan approval stage (WAITING_APPROVAL → WAITING_DISBURSEMENT/REJECTED). |
-| **BACKOFFICE**    | 11                | Loan disbursement stage + User Plafond assignment.                       |
+| **SUPERADMIN**    | 34                | Full administrative control + All menu visibility.                       |
+| **MARKETING**     | 11                | Branch data + Loan review stage + Dashboard/Loan/History menus.          |
+| **BRANCHMANAGER** | 11                | Branch data + Loan approval stage + Dashboard/Loan/History menus.        |
+| **BACKOFFICE**    | 15                | Loan disbursement + User Plafond + Dashboard/Loan/History/UserPlafond menus. |
 | **CUSTOMER**      | 11                | Self-service: Profile, Loan submission & tracking, Plafond viewing.      |
 
 ---
@@ -143,6 +162,8 @@ BRANCH:READ, BRANCH:CREATE, BRANCH:UPDATE, BRANCH:DELETE, BRANCH:RESTORE
 PLAFOND:READ, PLAFOND:DETAILS, PLAFOND:CREATE, PLAFOND:DELETE
 USER_PLAFOND:ASSIGN, USER_PLAFOND:READ, USER_PLAFOND:HISTORY
 LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
+MENU:DASHBOARD, MENU:USERS, MENU:BRANCH, MENU:ROLES
+MENU:LOAN, MENU:HISTORY, MENU:PLAFOND, MENU:USER_PLAFOND
 ```
 
 ### MARKETING
@@ -150,6 +171,7 @@ LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
 AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
 BRANCH:READ
 LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY, LOAN:LIST_PENDING_REVIEW, LOAN:REVIEW
+MENU:DASHBOARD, MENU:LOAN, MENU:HISTORY
 ```
 
 ### BRANCHMANAGER
@@ -157,6 +179,7 @@ LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY, LOAN:LIST_PENDING_REVIEW, LOAN:REVIEW
 AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
 BRANCH:READ
 LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY, LOAN:LIST_WAITING_APPROVAL, LOAN:APPROVE
+MENU:DASHBOARD, MENU:LOAN, MENU:HISTORY
 ```
 
 ### BACKOFFICE
@@ -165,6 +188,7 @@ AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
 LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
 LOAN:LIST_WAITING_DISBURSE, LOAN:DISBURSE, LOAN:REJECT_BACKOFFICE
 USER_PLAFOND:ASSIGN, USER_PLAFOND:READ, USER_PLAFOND:HISTORY
+MENU:DASHBOARD, MENU:LOAN, MENU:HISTORY, MENU:USER_PLAFOND
 ```
 
 ### CUSTOMER
