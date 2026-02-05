@@ -77,7 +77,7 @@ public class AuthService implements UserDetailsService {
   private final AuthenticationManager authenticationManager;
   private final PasswordEncoder passwordEncoder;
 
-  @Value("${app.frontend.url:http://localhost:9091}")
+  @Value("${app.frontend.url:http://localhost:4200}")
   private String frontendUrl;
 
   /**
