@@ -1,96 +1,220 @@
 # Documentation: Role-Based Access Control (RBAC) Permissions
 
-This document provides a comprehensive list of all granular permissions available in the Loanova system. These permissions are used in `@PreAuthorize("hasAuthority('...')")` annotations within controllers and are seeded via `PermissionSeeder.java`.
+Dokumentasi lengkap semua permission granular dalam sistem Loanova. Permission ini digunakan dalam anotasi `@PreAuthorize("hasAuthority('...')")` di controller dan di-seed melalui `PermissionSeeder.java`.
 
-## Permission Groupings
-
-### 1. Authentication & Security
-
-| Permission             | Description                                          | Assigned Roles |
-| :--------------------- | :--------------------------------------------------- | :------------- |
-| `AUTH:LOGOUT`          | Terminate current session and invalidate token.      | ALL            |
-| `AUTH:CHANGE_PASSWORD` | Change the password of the currently logged-in user. | ALL            |
-
-### 2. Loan Management
-
-| Permission                   | Description                                                 | Assigned Roles         |
-| :--------------------------- | :---------------------------------------------------------- | :--------------------- |
-| `LOAN:SUBMIT`                | Submit a new loan application.                              | CUSTOMER, SUPERADMIN\* |
-| `LOAN:READ_MY`               | View loan applications submitted by the current user.       | CUSTOMER, SUPERADMIN\* |
-| `LOAN:DETAILS`               | View detailed information of any specific loan application. | ALL                    |
-| `LOAN:HISTORY`               | View the status transition history (audit trail) of a loan. | ALL                    |
-| `LOAN:LIST_PENDING_REVIEW`   | List loans waiting for initial review (Marketing bucket).   | MARKETING              |
-| `LOAN:REVIEW`                | Perform review (Accept/Reject) on a loan application.       | MARKETING              |
-| `LOAN:LIST_WAITING_APPROVAL` | List loans waiting for Branch Manager approval.             | BRANCHMANAGER          |
-| `LOAN:APPROVE`               | Approve or Reject a loan application.                       | BRANCHMANAGER          |
-| `LOAN:LIST_WAITING_DISBURSE` | List approved loans waiting for fund disbursement.          | BACKOFFICE             |
-| `LOAN:DISBURSE`              | Mark a loan as disbursed.                                   | BACKOFFICE             |
-
-### 3. Branch Management
-
-| Permission       | Description                                         | Assigned Roles |
-| :--------------- | :-------------------------------------------------- | :------------- |
-| `BRANCH:READ`    | View list of all active branches.                   | ALL            |
-| `BRANCH:CREATE`  | Add a new office branch to the system.              | SUPERADMIN     |
-| `BRANCH:UPDATE`  | Edit existing branch details (Name, Address, etc.). | SUPERADMIN     |
-| `BRANCH:DELETE`  | Soft-delete a branch.                               | SUPERADMIN     |
-| `BRANCH:RESTORE` | Restore a previously deleted branch.                | SUPERADMIN     |
-
-### 4. Permission Management
-
-| Permission        | Description                             | Assigned Roles |
-| :---------------- | :-------------------------------------- | :------------- |
-| `PERMISSION:READ` | View list of all available permissions. | SUPERADMIN     |
-
-### 5. User & Role Management
-
-| Permission     | Description                                        | Assigned Roles |
-| :------------- | :------------------------------------------------- | :------------- |
-| `USER:READ`    | List all registered users (staff and customers).   | SUPERADMIN     |
-| `USER:DETAILS` | View detailed profile and role of a specific user. | SUPERADMIN     |
-| `USER:CREATE`  | Register a new user manually (Admin only).         | SUPERADMIN     |
-| `USER:UPDATE`  | Modify user account status or basic information.   | SUPERADMIN     |
-| `USER:DELETE`  | Remove a user from the system.                     | SUPERADMIN     |
-| `ROLE:READ`    | List available roles.                              | SUPERADMIN     |
-| `ROLE:CREATE`  | Create a new system role.                          | SUPERADMIN     |
-| `ROLE:UPDATE`  | Update role descriptions.                          | SUPERADMIN     |
-| `ROLE:DELETE`  | Delete a role.                                     | SUPERADMIN     |
-
-### 5. Plafond Management
-
-| Permission        | Description                           | Assigned Roles |
-| :---------------- | :------------------------------------ | :------------- |
-| `PLAFOND:READ`    | List all loan plafond configurations. | SUPERADMIN     |
-| `PLAFOND:DETAILS` | View details of a specific plafond.   | SUPERADMIN     |
-| `PLAFOND:CREATE`  | Create new plafond limits.            | SUPERADMIN     |
-| `PLAFOND:DELETE`  | Delete a plafond configuration.       | SUPERADMIN     |
-
-### 6. User Plafond (Credit Scoring)
-
-| Permission            | Description                                        | Assigned Roles         |
-| :-------------------- | :------------------------------------------------- | :--------------------- |
-| `USER_PLAFOND:ASSIGN` | Link a specific plafond limit to a user account.   | SUPERADMIN, BACKOFFICE |
-| `USER_PLAFOND:READ`   | View which plafond is currently active for a user. | SUPERADMIN, BACKOFFICE |
-
-### 7. Profile Management
-
-| Permission         | Description                                           | Assigned Roles |
-| :----------------- | :---------------------------------------------------- | :------------- |
-| `PROFILE:COMPLETE` | Fill in mandatory KYB/KYC details for the first time. | CUSTOMER       |
-| `PROFILE:UPDATE`   | Update own profile information.                       | CUSTOMER       |
-| `PROFILE:READ_MY`  | View own profile data.                                | CUSTOMER       |
+**Last Updated:** 2026-02-05
 
 ---
 
-## Role Assignment Summary Matrix
+## Permission Reference Table
 
-| Role              | Access Scope                                                           |
-| :---------------- | :--------------------------------------------------------------------- |
-| **SUPERADMIN**    | Full administrative control over Users, Roles, Branches, and Plafonds. |
-| **MARKETING**     | Discovery of branches and full processing of the Initial Review stage. |
-| **BRANCHMANAGER** | Discovery of branches and full processing of the Approval stage.       |
-| **BACKOFFICE**    | Full processing of Disbursement stage and Plafond Assignment.          |
-| **CUSTOMER**      | Discovery of branches, submission of loans, tracking own status, and profile management. |
+### 1. Authentication & Security
+**Base Path:** `/api/auth`
+
+| Permission             | Description                              | Controller Method       | Assigned Roles |
+| :--------------------- | :--------------------------------------- | :---------------------- | :------------- |
+| `AUTH:LOGOUT`          | Terminasi sesi dan invalidasi token.     | `AuthController.logout` | ALL            |
+| `AUTH:CHANGE_PASSWORD` | Mengubah password saat sedang login.     | `AuthController.changePassword` | ALL   |
+
+---
+
+### 2. User Management
+**Base Path:** `/api/users`
+
+| Permission     | Description                               | Controller Method            | Assigned Roles |
+| :------------- | :---------------------------------------- | :--------------------------- | :------------- |
+| `USER:READ`    | Melihat daftar semua user.                | `UserController.getAllUsers` | SUPERADMIN     |
+| `USER:DETAILS` | Melihat detail user berdasarkan ID.       | `UserController.getUserById` | SUPERADMIN     |
+| `USER:CREATE`  | Membuat user internal baru.               | `UserController.createUser`  | SUPERADMIN     |
+| `USER:UPDATE`  | Memperbarui data user.                    | `UserController.updateUser`  | SUPERADMIN     |
+| `USER:DELETE`  | Menghapus user dari sistem.               | `UserController.deleteUser`  | SUPERADMIN     |
+
+---
+
+### 3. Role Management
+**Base Path:** `/api/roles`
+
+| Permission    | Description                      | Controller Method            | Assigned Roles |
+| :------------ | :------------------------------- | :--------------------------- | :------------- |
+| `ROLE:READ`   | Melihat daftar semua role.       | `RoleController.getAllRoles` | SUPERADMIN     |
+| `ROLE:CREATE` | Membuat role custom baru.        | `RoleController.createRole`  | SUPERADMIN     |
+| `ROLE:UPDATE` | Update role & permissions.       | `RoleController.updateRole`  | SUPERADMIN     |
+| `ROLE:DELETE` | Menghapus role dari sistem.      | `RoleController.deleteRole`  | SUPERADMIN     |
+
+---
+
+### 4. Permission Management
+**Base Path:** `/api/permissions`
+
+| Permission        | Description                               | Controller Method                    | Assigned Roles |
+| :---------------- | :---------------------------------------- | :----------------------------------- | :------------- |
+| `PERMISSION:READ` | Melihat daftar semua hak akses di sistem. | `PermissionController.getAllPermissions` | SUPERADMIN |
+
+---
+
+### 5. Branch Management
+**Base Path:** `/api/branches`
+
+| Permission       | Description                           | Controller Method                | Assigned Roles       |
+| :--------------- | :------------------------------------ | :------------------------------- | :------------------- |
+| `BRANCH:READ`    | Melihat daftar semua cabang.          | `BranchController.getAllBranches`| ALL                  |
+| `BRANCH:CREATE`  | Menambah cabang baru.                 | `BranchController.createBranch`  | SUPERADMIN           |
+| `BRANCH:UPDATE`  | Mengubah data cabang.                 | `BranchController.updateBranch`  | SUPERADMIN           |
+| `BRANCH:DELETE`  | Menghapus cabang (soft delete).       | `BranchController.deleteBranch`  | SUPERADMIN           |
+| `BRANCH:RESTORE` | Memulihkan cabang yang sudah dihapus. | `BranchController.restoreBranch` | SUPERADMIN           |
+
+---
+
+### 6. Plafond Management
+**Base Path:** `/api/plafonds`
+
+| Permission        | Description                    | Controller Method                   | Assigned Roles |
+| :---------------- | :----------------------------- | :---------------------------------- | :------------- |
+| `PLAFOND:READ`    | Melihat daftar semua plafond.  | `PlafondController.getAllPlafonds`  | SUPERADMIN     |
+| `PLAFOND:DETAILS` | Melihat detail plafond.        | `PlafondController.getPlafondById`  | SUPERADMIN     |
+| `PLAFOND:CREATE`  | Membuat plafond baru.          | `PlafondController.createPlafond`   | SUPERADMIN     |
+| `PLAFOND:DELETE`  | Menghapus plafond (soft del).  | `PlafondController.deletePlafond`   | SUPERADMIN     |
+
+---
+
+### 7. User Plafond Assignment
+**Base Path:** `/api/user-plafonds`
+
+| Permission            | Description                                     | Controller Method                           | Assigned Roles         |
+| :-------------------- | :---------------------------------------------- | :------------------------------------------ | :--------------------- |
+| `USER_PLAFOND:ASSIGN` | Assign plafond ke user (otomatis nonaktif lama) | `UserPlafondController.assignPlafond`       | SUPERADMIN, BACKOFFICE |
+| `USER_PLAFOND:READ`   | Melihat plafond aktif milik user.               | `UserPlafondController.getActiveUserPlafond`| SUPERADMIN, BACKOFFICE, CUSTOMER (self) |
+| `USER_PLAFOND:HISTORY`| Melihat riwayat semua plafond user.             | `UserPlafondController.getUserPlafondHistory`| SUPERADMIN, BACKOFFICE |
+
+---
+
+### 8. Loan Application Management
+**Base Path:** `/api/loan-applications`
+
+| Permission                   | Description                                   | Controller Method                              | Assigned Roles    |
+| :--------------------------- | :-------------------------------------------- | :--------------------------------------------- | :---------------- |
+| `LOAN:SUBMIT`                | Submit pengajuan pinjaman baru.               | `LoanApplicationController.submitLoanApplication` | CUSTOMER       |
+| `LOAN:READ_MY`               | Melihat pengajuan pinjaman sendiri.           | `LoanApplicationController.getMyApplications`  | CUSTOMER          |
+| `LOAN:READ_ALL`              | Melihat semua pengajuan (filter by role).     | `LoanApplicationController.getAllApplications` | ALL               |
+| `LOAN:DETAILS`               | Melihat detail pengajuan pinjaman.            | `LoanApplicationController.getApplicationDetail` | ALL             |
+| `LOAN:HISTORY`               | Melihat history status pengajuan.             | `LoanApplicationController.getApplicationHistory` | ALL            |
+| `LOAN:LIST_PENDING_REVIEW`   | Melihat daftar pending review (Marketing).    | `LoanApplicationController.getPendingApplications` | MARKETING     |
+| `LOAN:REVIEW`                | Review pengajuan (PROCEED/REJECT).            | `LoanApplicationController.reviewApplication`  | MARKETING         |
+| `LOAN:LIST_WAITING_APPROVAL` | Melihat daftar waiting approval (BM).         | `LoanApplicationController.getWaitingApprovalApplications` | BRANCHMANAGER |
+| `LOAN:APPROVE`               | Approve/Reject pengajuan pinjaman.            | `LoanApplicationController.approveApplication` | BRANCHMANAGER     |
+| `LOAN:LIST_WAITING_DISBURSE` | Melihat daftar waiting disbursement.          | `LoanApplicationController.getWaitingDisbursementApplications` | BACKOFFICE |
+| `LOAN:DISBURSE`              | Mencairkan dana pinjaman.                     | `LoanApplicationController.disburseApplication` | BACKOFFICE       |
+| `LOAN:REJECT_BACKOFFICE`     | Menolak pencairan di tahap backoffice.        | `LoanApplicationController.backofficeReject`   | BACKOFFICE        |
+
+---
+
+### 9. Profile Management
+**Base Path:** `/api/user-profiles`
+
+| Permission         | Description                              | Controller Method                       | Assigned Roles |
+| :----------------- | :--------------------------------------- | :-------------------------------------- | :------------- |
+| `PROFILE:COMPLETE` | Melengkapi data profil (multipart form). | `UserProfileController.completeProfile` | CUSTOMER       |
+| `PROFILE:UPDATE`   | Memperbarui data profil (multipart form).| `UserProfileController.updateProfile`   | CUSTOMER       |
+| `PROFILE:READ_MY`  | Melihat profil sendiri.                  | `UserProfileController.getMyProfile`    | CUSTOMER       |
+
+---
+
+## Role Summary Matrix
+
+| Role              | Total Permissions | Access Scope                                                              |
+| :---------------- | :---------------: | :------------------------------------------------------------------------ |
+| **SUPERADMIN**    | 26                | Full administrative control: Users, Roles, Branches, Plafonds, User Plafonds, Loan viewing. |
+| **MARKETING**     | 8                 | Branch viewing + Loan review stage (PENDING_REVIEW → WAITING_APPROVAL).  |
+| **BRANCHMANAGER** | 8                 | Branch viewing + Loan approval stage (WAITING_APPROVAL → WAITING_DISBURSEMENT/REJECTED). |
+| **BACKOFFICE**    | 11                | Loan disbursement stage + User Plafond assignment.                       |
+| **CUSTOMER**      | 11                | Self-service: Profile, Loan submission & tracking, Plafond viewing.      |
+
+---
+
+## Role Permission Details
+
+### SUPERADMIN
+```
+AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+USER:READ, USER:DETAILS, USER:CREATE, USER:UPDATE, USER:DELETE
+ROLE:READ, ROLE:CREATE, ROLE:UPDATE, ROLE:DELETE
+PERMISSION:READ
+BRANCH:READ, BRANCH:CREATE, BRANCH:UPDATE, BRANCH:DELETE, BRANCH:RESTORE
+PLAFOND:READ, PLAFOND:DETAILS, PLAFOND:CREATE, PLAFOND:DELETE
+USER_PLAFOND:ASSIGN, USER_PLAFOND:READ, USER_PLAFOND:HISTORY
+LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
+```
+
+### MARKETING
+```
+AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+BRANCH:READ
+LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY, LOAN:LIST_PENDING_REVIEW, LOAN:REVIEW
+```
+
+### BRANCHMANAGER
+```
+AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+BRANCH:READ
+LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY, LOAN:LIST_WAITING_APPROVAL, LOAN:APPROVE
+```
+
+### BACKOFFICE
+```
+AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
+LOAN:LIST_WAITING_DISBURSE, LOAN:DISBURSE, LOAN:REJECT_BACKOFFICE
+USER_PLAFOND:ASSIGN, USER_PLAFOND:READ, USER_PLAFOND:HISTORY
+```
+
+### CUSTOMER
+```
+AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+BRANCH:READ
+LOAN:SUBMIT, LOAN:READ_MY, LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
+PROFILE:COMPLETE, PROFILE:UPDATE, PROFILE:READ_MY
+USER_PLAFOND:READ
+```
+
+---
+
+## Public Endpoints (No Permission Required)
+
+Beberapa endpoint dapat diakses tanpa autentikasi:
+
+| Endpoint                     | Description                           |
+| :--------------------------- | :------------------------------------ |
+| `POST /api/auth/register`    | Mendaftarkan customer baru.           |
+| `POST /api/auth/login`       | Login user (semua role).              |
+| `POST /api/auth/firebase-google` | Login via Google Firebase.        |
+| `POST /api/auth/refresh`     | Refresh access token.                 |
+| `POST /api/auth/forgot-password` | Request link reset password.      |
+| `POST /api/auth/reset-password` | Reset password dengan token.       |
+| `GET /api/plafonds/public`   | Melihat daftar plafond untuk umum.    |
+
+---
+
+## Authenticated Endpoints (No Specific Permission)
+
+Beberapa endpoint hanya memerlukan autentikasi tanpa permission spesifik:
+
+| Endpoint                        | Description                              |
+| :------------------------------ | :--------------------------------------- |
+| `GET /api/notifications`        | Melihat notifikasi user yang login.      |
+| `PUT /api/notifications/{id}/read` | Tandai notifikasi sebagai sudah dibaca. |
+| `PUT /api/notifications/read-all` | Tandai semua notifikasi sudah dibaca.  |
+| `GET /api/users/by-username/{username}` | Melihat profil sendiri (SpEL check). |
+
+---
+
+## Special Access Notes
 
 > [!NOTE]
-> _SUPERADMIN permissions for LOAN:SUBMIT and LOAN:READ_MY were intentionally omitted per strict controller comments analysis to ensure separation of duties._
+> **hasRole vs hasAuthority**: Endpoint `POST /api/notifications/test-push` menggunakan `hasRole('SUPERADMIN')` bukan `hasAuthority()`. Ini adalah akses berbasis role langsung, bukan permission granular.
+
+> [!TIP]
+> **USER_PLAFOND:READ untuk CUSTOMER**: Customer dapat melihat plafond aktif milik sendiri melalui pengecekan SpEL di controller (`isSelf || isAdmin`).
+
+---
+
+*Generated by Loanova Assistant - Last Updated: 2026-02-05*

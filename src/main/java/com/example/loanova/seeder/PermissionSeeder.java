@@ -110,8 +110,7 @@ public class PermissionSeeder implements CommandLineRunner {
                                 "ROLE:READ", "ROLE:CREATE", "ROLE:UPDATE", "ROLE:DELETE",
                                 "PERMISSION:READ",
                                 "BRANCH:READ", "BRANCH:CREATE", "BRANCH:UPDATE", "BRANCH:DELETE", "BRANCH:RESTORE",
-                                "PLAFOND:READ", "PLAFOND:DETAILS", "PLAFOND:CREATE", "PLAFOND:UPDATE", "PLAFOND:DELETE",
-                                "PLAFOND:RESTORE",
+                                "PLAFOND:READ", "PLAFOND:DETAILS", "PLAFOND:CREATE", "PLAFOND:DELETE",
                                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
                                 "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY"))));
 
