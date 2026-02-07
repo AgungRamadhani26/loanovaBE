@@ -90,4 +90,16 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
   default boolean existsByPlafondId(Long plafondId) {
     return countByPlafondIdNative(plafondId) > 0;
   }
+
+  // ==================== DASHBOARD STATISTICS QUERIES ====================
+
+  /**
+   * Get all loan applications (for aggregation in service layer)
+   */
+  List<LoanApplication> findAll();
+
+  /**
+   * Get all loan applications by branch (for MARKETING/BRANCHMANAGER)
+   */
+  List<LoanApplication> findByBranchId(Long branchId);
 }

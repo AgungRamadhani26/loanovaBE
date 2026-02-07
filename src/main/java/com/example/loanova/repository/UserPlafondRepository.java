@@ -48,4 +48,11 @@ public interface UserPlafondRepository extends JpaRepository<UserPlafond, Long> 
    * Diurutkan dari yang terbaru.
    */
   java.util.List<UserPlafond> findAllByUserOrderByAssignedAtDesc(User user);
+
+  // ==================== DASHBOARD STATISTICS ====================
+
+  /**
+   * Get all active user plafonds for plafond distribution chart
+   */
+  java.util.List<UserPlafond> findByIsActiveTrue();
 }

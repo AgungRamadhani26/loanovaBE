@@ -105,7 +105,10 @@ public class PermissionSeeder implements CommandLineRunner {
                                 createPermissionIfNotFound("MENU:ROLES", "Melihat menu Role Permission"),
                                 createPermissionIfNotFound("MENU:LOAN", "Melihat menu Loan Application"),
                                 createPermissionIfNotFound("MENU:PLAFOND", "Melihat menu Plafond"),
-                                createPermissionIfNotFound("MENU:USER_PLAFOND", "Melihat menu User Plafond"));
+                                createPermissionIfNotFound("MENU:USER_PLAFOND", "Melihat menu User Plafond"),
+
+                                // DASHBOARD Statistics
+                                createPermissionIfNotFound("DASHBOARD:STATISTICS", "Melihat statistik dashboard"));
 
                 // Permissions for EVERY authenticated user (Roles that need base system access)
                 List<String> commonBasePermissions = Arrays.asList(
@@ -126,21 +129,30 @@ public class PermissionSeeder implements CommandLineRunner {
                                 "LOAN:LIST_PENDING_REVIEW", "LOAN:LIST_WAITING_APPROVAL", "LOAN:LIST_WAITING_DISBURSE",
                                 // Menu visibility
                                 "MENU:DASHBOARD", "MENU:USERS", "MENU:BRANCH", "MENU:ROLES",
-                                "MENU:LOAN", "MENU:PLAFOND", "MENU:USER_PLAFOND"))));
+                                "MENU:LOAN", "MENU:PLAFOND", "MENU:USER_PLAFOND",
+                                // Dashboard statistics
+                                "DASHBOARD:STATISTICS"))));
+
 
                 // MARKETING:
                 assignPermissionsToRole("MARKETING", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "BRANCH:READ", "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
                                 "LOAN:LIST_PENDING_REVIEW", "LOAN:REVIEW",
                                 // Menu visibility
-                                "MENU:DASHBOARD", "MENU:LOAN"))));
+                                "MENU:DASHBOARD", "MENU:LOAN",
+                                // Dashboard statistics
+                                "DASHBOARD:STATISTICS"))));
+
 
                 // BRANCHMANAGER:
                 assignPermissionsToRole("BRANCHMANAGER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
                                 "BRANCH:READ", "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY",
                                 "LOAN:LIST_WAITING_APPROVAL", "LOAN:APPROVE",
                                 // Menu visibility
-                                "MENU:DASHBOARD", "MENU:LOAN"))));
+                                "MENU:DASHBOARD", "MENU:LOAN",
+                                // Dashboard statistics
+                                "DASHBOARD:STATISTICS"))));
+
 
                 // BACKOFFICE:
                 assignPermissionsToRole("BACKOFFICE", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
@@ -150,7 +162,9 @@ public class PermissionSeeder implements CommandLineRunner {
                                 "LOAN:DISBURSE", "LOAN:REJECT_BACKOFFICE",
                                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
                                 // Menu visibility
-                                "MENU:DASHBOARD", "MENU:LOAN", "MENU:USER_PLAFOND"))));
+                                "MENU:DASHBOARD", "MENU:LOAN", "MENU:USER_PLAFOND",
+                                // Dashboard statistics
+                                "DASHBOARD:STATISTICS"))));
 
                 // CUSTOMER:
                 assignPermissionsToRole("CUSTOMER", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
