@@ -23,7 +23,7 @@ Dokumentasi lengkap semua permission granular dalam sistem Loanova. Permission i
 
 | Permission     | Description                               | Controller Method            | Assigned Roles |
 | :------------- | :---------------------------------------- | :--------------------------- | :------------- |
-| `USER:READ`    | Melihat daftar semua user.                | `UserController.getAllUsers` | SUPERADMIN     |
+| `USER:READ`    | Melihat daftar semua user.                | `UserController.getAllUsers` | SUPERADMIN, BACKOFFICE |
 | `USER:DETAILS` | Melihat detail user berdasarkan ID.       | `UserController.getUserById` | SUPERADMIN     |
 | `USER:CREATE`  | Membuat user internal baru.               | `UserController.createUser`  | SUPERADMIN     |
 | `USER:UPDATE`  | Memperbarui data user.                    | `UserController.updateUser`  | SUPERADMIN     |
@@ -70,7 +70,7 @@ Dokumentasi lengkap semua permission granular dalam sistem Loanova. Permission i
 
 | Permission        | Description                    | Controller Method                   | Assigned Roles |
 | :---------------- | :----------------------------- | :---------------------------------- | :------------- |
-| `PLAFOND:READ`    | Melihat daftar semua plafond.  | `PlafondController.getAllPlafonds`  | SUPERADMIN     |
+| `PLAFOND:READ`    | Melihat daftar semua plafond.  | `PlafondController.getAllPlafonds`  | SUPERADMIN, BACKOFFICE |
 | `PLAFOND:DETAILS` | Melihat detail plafond.        | `PlafondController.getPlafondById`  | SUPERADMIN     |
 | `PLAFOND:CREATE`  | Membuat plafond baru.          | `PlafondController.createPlafond`   | SUPERADMIN     |
 | `PLAFOND:DELETE`  | Menghapus plafond (soft del).  | `PlafondController.deletePlafond`   | SUPERADMIN     |
@@ -144,7 +144,7 @@ Dokumentasi lengkap semua permission granular dalam sistem Loanova. Permission i
 | **SUPERADMIN**    | 34                | Full administrative control + All menu visibility.                       |
 | **MARKETING**     | 11                | Branch data + Loan review stage + Dashboard/Loan/History menus.          |
 | **BRANCHMANAGER** | 11                | Branch data + Loan approval stage + Dashboard/Loan/History menus.        |
-| **BACKOFFICE**    | 15                | Loan disbursement + User Plafond + Dashboard/Loan/History/UserPlafond menus. |
+| **BACKOFFICE**    | 17                | User data (read) + Plafond data (read) + Loan disbursement + User Plafond + Dashboard/Loan/UserPlafond menus. |
 | **CUSTOMER**      | 11                | Self-service: Profile, Loan submission & tracking, Plafond viewing.      |
 
 ---
@@ -184,6 +184,8 @@ MENU:DASHBOARD, MENU:LOAN
 ### BACKOFFICE
 ```
 AUTH:LOGOUT, AUTH:CHANGE_PASSWORD
+USER:READ
+PLAFOND:READ
 LOAN:READ_ALL, LOAN:DETAILS, LOAN:HISTORY
 LOAN:LIST_WAITING_DISBURSE, LOAN:DISBURSE, LOAN:REJECT_BACKOFFICE
 USER_PLAFOND:ASSIGN, USER_PLAFOND:READ, USER_PLAFOND:HISTORY

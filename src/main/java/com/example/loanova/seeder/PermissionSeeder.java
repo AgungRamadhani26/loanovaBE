@@ -144,6 +144,8 @@ public class PermissionSeeder implements CommandLineRunner {
 
                 // BACKOFFICE:
                 assignPermissionsToRole("BACKOFFICE", getPermissionsSet(combine(commonBasePermissions, Arrays.asList(
+                                "USER:READ",  // Needed to list customers in User Plafond page
+                                "PLAFOND:READ",  // Needed to show plafond dropdown in assign form
                                 "LOAN:READ_ALL", "LOAN:DETAILS", "LOAN:HISTORY", "LOAN:LIST_WAITING_DISBURSE",
                                 "LOAN:DISBURSE", "LOAN:REJECT_BACKOFFICE",
                                 "USER_PLAFOND:ASSIGN", "USER_PLAFOND:READ", "USER_PLAFOND:HISTORY",
