@@ -33,15 +33,15 @@ public class User extends BaseEntity {
   private String fcmToken;
 
   /**
-   * Google User ID dari Firebase Authentication.
-   * Digunakan untuk account linking dan identifikasi user Google.
+   * Google User ID dari Firebase Authentication. Digunakan untuk account linking dan identifikasi
+   * user Google.
    */
   @Column(name = "google_id", unique = true)
   private String googleId;
 
   /**
-   * Provider autentikasi: LOCAL (email/password) atau GOOGLE (Google Sign-In).
-   * Default adalah LOCAL untuk backward compatibility.
+   * Provider autentikasi: LOCAL (email/password) atau GOOGLE (Google Sign-In). Default adalah LOCAL
+   * untuk backward compatibility.
    */
   @Column(name = "auth_provider", length = 20)
   @Builder.Default

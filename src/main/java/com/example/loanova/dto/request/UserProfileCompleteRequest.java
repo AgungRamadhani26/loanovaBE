@@ -13,8 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * USER PROFILE COMPLETE REQUEST - DTO khusus untuk pendaftaran/pengisian profil
- * pertama kali. Semua
+ * USER PROFILE COMPLETE REQUEST - DTO khusus untuk pendaftaran/pengisian profil pertama kali. Semua
  * field data pribadi dan foto bersifat WAJIB.
  */
 @Data

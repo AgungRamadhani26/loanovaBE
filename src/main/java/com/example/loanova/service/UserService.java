@@ -12,11 +12,11 @@ import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.BranchRepository;
+import com.example.loanova.repository.LoanApplicationRepository;
 import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.RoleRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
-import com.example.loanova.repository.LoanApplicationRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,10 +63,11 @@ public class UserService {
    * Mendapatkan User berdasarkan ID
    */
   public UserResponse getUserById(Long id) {
-    User user = userRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
     return toResponse(user);
   }
 
@@ -74,10 +75,13 @@ public class UserService {
    * Mendapatkan User berdasarkan username
    */
   public UserResponse getUserByUsername(String username) {
-    User user = userRepository
-        .findByUsername(username)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan username " + username));
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Maaf, tidak ada data user dengan username " + username));
     return toResponse(user);
   }
 
@@ -91,37 +95,43 @@ public class UserService {
       throw new DuplicateResourceException("Email sudah digunakan");
     }
     // Ambil roles
-    Set<Role> roles = roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
+    Set<Role> roles =
+        roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
     // Cek apakah ada role MARKETING atau BRANCHMANAGER
-    boolean requiresBranch = roles.stream()
-        .anyMatch(
-            r -> r.getRoleName().equalsIgnoreCase("MARKETING")
-                || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
+    boolean requiresBranch =
+        roles.stream()
+            .anyMatch(
+                r ->
+                    r.getRoleName().equalsIgnoreCase("MARKETING")
+                        || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
     Branch branch = null;
     if (requiresBranch) {
       if (request.getBranchId() == null) {
         throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCHMANAGER");
       }
-      branch = branchRepository
-          .findById(request.getBranchId())
-          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch =
+          branchRepository
+              .findById(request.getBranchId())
+              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     } else if (request.getBranchId() != null) {
       // Jika branch diisi untuk role lain (opsional), validasi apakah exist
-      branch = branchRepository
-          .findById(request.getBranchId())
-          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch =
+          branchRepository
+              .findById(request.getBranchId())
+              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     }
-    User user = User.builder()
-        .username(request.getUsername())
-        .email(request.getEmail())
-        .password(passwordEncoder.encode(request.getPassword()))
-        .branch(branch)
-        .roles(roles)
-        .isActive(request.getIsActive())
-        .build();
+    User user =
+        User.builder()
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .branch(branch)
+            .roles(roles)
+            .isActive(request.getIsActive())
+            .build();
     User savedUser = userRepository.save(user);
 
     // Auto-assign Bronze plafond jika user memiliki role CUSTOMER
@@ -135,10 +145,11 @@ public class UserService {
   /* Mengupdate data user */
   @Transactional
   public UserResponse updateUser(Long id, UserUpdateRequest request) {
-    User user = userRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
     // Cek duplikasi username kecuali diri sendiri
     if (!user.getUsername().equals(request.getUsername())
         && userRepository.existsByUsername(request.getUsername())) {
@@ -155,18 +166,20 @@ public class UserService {
     // Aturan:
     // 1. CUSTOMER tidak boleh diubah ke role lain
     // 2. Role lain tidak boleh diubah menjadi CUSTOMER
-    // 3. Perpindahan antar role staff (SUPERADMIN, BACKOFFICE, MARKETING, BRANCHMANAGER) diperbolehkan
-    boolean isCurrentlyCustomer = user.getRoles().stream()
-        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
-    
+    // 3. Perpindahan antar role staff (SUPERADMIN, BACKOFFICE, MARKETING, BRANCHMANAGER)
+    // diperbolehkan
+    boolean isCurrentlyCustomer =
+        user.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+
     // Ambil roles dari request
-    Set<Role> roles = roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
+    Set<Role> roles =
+        roleRepository.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
     if (roles.isEmpty()) {
       throw new BusinessException("Role wajib diisi minimal 1");
     }
 
-    boolean requestHasCustomerRole = roles.stream()
-        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+    boolean requestHasCustomerRole =
+        roles.stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("CUSTOMER"));
 
     // Validasi 1: CUSTOMER tidak boleh diubah ke role lain
     if (isCurrentlyCustomer && !requestHasCustomerRole) {
@@ -175,8 +188,8 @@ public class UserService {
 
     // Validasi 2: CUSTOMER tidak boleh ditambahi role lain
     if (isCurrentlyCustomer && requestHasCustomerRole) {
-      boolean hasOtherRoles = roles.stream()
-          .anyMatch(r -> !r.getRoleName().equalsIgnoreCase("CUSTOMER"));
+      boolean hasOtherRoles =
+          roles.stream().anyMatch(r -> !r.getRoleName().equalsIgnoreCase("CUSTOMER"));
       if (hasOtherRoles) {
         throw new BusinessException("User CUSTOMER tidak dapat memiliki role tambahan.");
       }
@@ -184,27 +197,32 @@ public class UserService {
 
     // Validasi 3: Role staff tidak boleh diubah menjadi CUSTOMER
     if (!isCurrentlyCustomer && requestHasCustomerRole) {
-      throw new BusinessException("Role staff tidak dapat diubah menjadi CUSTOMER. Silakan buat akun baru jika diperlukan.");
+      throw new BusinessException(
+          "Role staff tidak dapat diubah menjadi CUSTOMER. Silakan buat akun baru jika diperlukan.");
     }
 
     // Cek apakah ada role MARKETING atau BRANCHMANAGER
-    boolean requiresBranch = roles.stream()
-        .anyMatch(
-            r -> r.getRoleName().equalsIgnoreCase("MARKETING")
-                || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
+    boolean requiresBranch =
+        roles.stream()
+            .anyMatch(
+                r ->
+                    r.getRoleName().equalsIgnoreCase("MARKETING")
+                        || r.getRoleName().equalsIgnoreCase("BRANCHMANAGER"));
     Branch branch = null;
     if (requiresBranch) {
       if (request.getBranchId() == null) {
         throw new BusinessException("Branch wajib diisi untuk role MARKETING dan BRANCHMANAGER");
       }
-      branch = branchRepository
-          .findById(request.getBranchId())
-          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch =
+          branchRepository
+              .findById(request.getBranchId())
+              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     } else if (request.getBranchId() != null) {
       // Jika branch diisi untuk role lain (opsional), validasi apakah exist
-      branch = branchRepository
-          .findById(request.getBranchId())
-          .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
+      branch =
+          branchRepository
+              .findById(request.getBranchId())
+              .orElseThrow(() -> new ResourceNotFoundException("Branch tidak ditemukan"));
     }
 
     // update field tanpa password
@@ -228,25 +246,28 @@ public class UserService {
   /* Soft delete - menandai user sebagai deleted tanpa menghapus dari database */
   @Transactional
   public void deleteUser(Long id) {
-    User user = userRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
+    User user =
+        userRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data user dengan id " + id));
 
     // VALIDASI SAFE-DELETE 1: Proteksi Superadmin Terakhir
-    boolean isAdmin = user.getRoles().stream()
-        .anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN"));
+    boolean isAdmin =
+        user.getRoles().stream().anyMatch(r -> r.getRoleName().equalsIgnoreCase("SUPERADMIN"));
 
     if (isAdmin && user.getIsActive()) {
-        long activeAdminCount = userRepository.countByRolesRoleNameAndIsActiveTrue("SUPERADMIN");
-        if (activeAdminCount <= 1) {
-            throw new BusinessException("Gagal menghapus. Harus ada minimal satu SUPERADMIN aktif di sistem.");
-        }
+      long activeAdminCount = userRepository.countByRolesRoleNameAndIsActiveTrue("SUPERADMIN");
+      if (activeAdminCount <= 1) {
+        throw new BusinessException(
+            "Gagal menghapus. Harus ada minimal satu SUPERADMIN aktif di sistem.");
+      }
     }
 
     // VALIDASI SAFE-DELETE 2: Cek Pinjaman Aktif
     if (loanApplicationRepository.existsActiveApplicationByUser(user.getId())) {
-        throw new BusinessException("User tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
+      throw new BusinessException(
+          "User tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
     }
 
     user.setIsActive(false); // Otomatis nonaktifkan saat didelete
@@ -254,27 +275,22 @@ public class UserService {
     userRepository.save(user);
   }
 
-  /**
-   * Helper method untuk cek apakah user memiliki role CUSTOMER
-   */
+  /** Helper method untuk cek apakah user memiliki role CUSTOMER */
   private boolean hasCustomerRole(User user) {
     return user.getRoles().stream()
         .anyMatch(role -> role.getRoleName().equalsIgnoreCase("CUSTOMER"));
   }
 
   /**
-   * Helper method untuk auto-create default user plafond (Bronze) jika belum ada.
-   * Plafond Bronze dengan ID 3 akan otomatis di-assign ke setiap customer.
-   * Method ini mengecek terlebih dahulu apakah user sudah punya plafond aktif,
-   * jika sudah ada maka tidak membuat yang baru.
-   * 
+   * Helper method untuk auto-create default user plafond (Bronze) jika belum ada. Plafond Bronze
+   * dengan ID 3 akan otomatis di-assign ke setiap customer. Method ini mengecek terlebih dahulu
+   * apakah user sudah punya plafond aktif, jika sudah ada maka tidak membuat yang baru.
+   *
    * @param user User yang akan diberi plafond
    */
   private void createDefaultUserPlafondIfNotExists(User user) {
     // Cek apakah user sudah memiliki plafond aktif
-    boolean hasActivePlafond = userPlafondRepository
-        .findByUserAndIsActive(user, true)
-        .isPresent();
+    boolean hasActivePlafond = userPlafondRepository.findByUserAndIsActive(user, true).isPresent();
 
     if (hasActivePlafond) {
       // User sudah punya plafond aktif, skip
@@ -282,18 +298,23 @@ public class UserService {
     }
 
     // Ambil plafond Bronze berdasarkan nama
-    Plafond bronzePlafond = plafondRepository
-        .findByName("BRONZE")
-        .orElseThrow(() -> new BusinessException("Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
+    Plafond bronzePlafond =
+        plafondRepository
+            .findByName("BRONZE")
+            .orElseThrow(
+                () ->
+                    new BusinessException(
+                        "Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
 
     // Create user plafond dengan max_amount dari Bronze
-    UserPlafond userPlafond = UserPlafond.builder()
-        .user(user)
-        .plafond(bronzePlafond)
-        .maxAmount(bronzePlafond.getMaxAmount())
-        .remainingAmount(bronzePlafond.getMaxAmount()) // Awal sama dengan max_amount
-        .isActive(true)
-        .build();
+    UserPlafond userPlafond =
+        UserPlafond.builder()
+            .user(user)
+            .plafond(bronzePlafond)
+            .maxAmount(bronzePlafond.getMaxAmount())
+            .remainingAmount(bronzePlafond.getMaxAmount()) // Awal sama dengan max_amount
+            .isActive(true)
+            .build();
 
     userPlafondRepository.save(userPlafond);
   }

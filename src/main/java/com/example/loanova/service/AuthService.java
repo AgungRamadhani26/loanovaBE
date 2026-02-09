@@ -16,10 +16,10 @@ import com.example.loanova.exception.BusinessException;
 import com.example.loanova.exception.DuplicateResourceException;
 import com.example.loanova.exception.ResourceNotFoundException;
 import com.example.loanova.repository.PasswordResetTokenRepository;
+import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.PlafondRepository;
 import com.example.loanova.repository.RefreshTokenRepository;
 import com.example.loanova.repository.RoleRepository;
-import com.example.loanova.repository.PermissionRepository;
 import com.example.loanova.repository.UserPlafondRepository;
 import com.example.loanova.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
@@ -47,19 +47,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * AUTH SERVICE - Service untuk handle authentication (login, logout, refresh,
- * dll)
+ * AUTH SERVICE - Service untuk handle authentication (login, logout, refresh, dll)
  *
- * <p>
- * Class ini implements UserDetailsService: - Interface dari Spring Security
- * untuk load user dari
+ * <p>Class ini implements UserDetailsService: - Interface dari Spring Security untuk load user dari
  * database - Method loadUserByUsername() dipanggil saat authentication
  *
- * <p>
- * Fungsi service ini: 1. Handle login user 2. Handle refresh token (generate
- * access token baru)
- * 3. Generate access token & refresh token 4. Load user dari database untuk
- * Spring Security 5.
+ * <p>Fungsi service ini: 1. Handle login user 2. Handle refresh token (generate access token baru)
+ * 3. Generate access token & refresh token 4. Load user dari database untuk Spring Security 5.
  * Convert entity User → UserDetails (format Spring Security)
  */
 @Service
@@ -81,10 +75,8 @@ public class AuthService implements UserDetailsService {
   private String frontendUrl;
 
   /**
-   * Constructor dengan manual injection @Lazy pada AuthenticationManager untuk
-   * avoid circular
-   * dependency: AuthService → SecurityConfig → AuthenticationManager →
-   * AuthService
+   * Constructor dengan manual injection @Lazy pada AuthenticationManager untuk avoid circular
+   * dependency: AuthService → SecurityConfig → AuthenticationManager → AuthService
    */
   public AuthService(
       UserRepository userRepository,
@@ -130,18 +122,20 @@ public class AuthService implements UserDetailsService {
     }
 
     // STEP 2: Ambil role CUSTOMER
-    Role customerRole = roleRepository
-        .findByRoleName("CUSTOMER")
-        .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
+    Role customerRole =
+        roleRepository
+            .findByRoleName("CUSTOMER")
+            .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
 
     // STEP 3: Create User entity
-    User user = User.builder()
-        .username(request.getUsername())
-        .email(request.getEmail())
-        .password(passwordEncoder.encode(request.getPassword()))
-        .isActive(true)
-        .roles(new HashSet<>(Collections.singletonList(customerRole)))
-        .build();
+    User user =
+        User.builder()
+            .username(request.getUsername())
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .isActive(true)
+            .roles(new HashSet<>(Collections.singletonList(customerRole)))
+            .build();
 
     // STEP 4: Save to database
     User savedUser = userRepository.save(user);
@@ -154,29 +148,31 @@ public class AuthService implements UserDetailsService {
   }
 
   /**
-   * HELPER: Create default user plafond (Bronze) untuk CUSTOMER baru. Plafond
-   * Bronze dengan ID 3
-   * akan otomatis di-assign ke setiap customer baru. Max amount dan remaining
-   * amount diambil dari
+   * HELPER: Create default user plafond (Bronze) untuk CUSTOMER baru. Plafond Bronze dengan ID 3
+   * akan otomatis di-assign ke setiap customer baru. Max amount dan remaining amount diambil dari
    * plafond Bronze.
    *
    * @param user User yang baru dibuat
    */
   private void createDefaultUserPlafond(User user) {
     // Ambil plafond Bronze berdasarkan nama
-    Plafond bronzePlafond = plafondRepository
-        .findByName("BRONZE")
-        .orElseThrow(() -> new BusinessException(
-            "Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
+    Plafond bronzePlafond =
+        plafondRepository
+            .findByName("BRONZE")
+            .orElseThrow(
+                () ->
+                    new BusinessException(
+                        "Plafond 'BRONZE' tidak ditemukan di database. Pastikan data master sudah di-seed."));
 
     // Create user plafond dengan max_amount dari Bronze
-    UserPlafond userPlafond = UserPlafond.builder()
-        .user(user)
-        .plafond(bronzePlafond)
-        .maxAmount(bronzePlafond.getMaxAmount())
-        .remainingAmount(bronzePlafond.getMaxAmount()) // Awal sama dengan max_amount
-        .isActive(true)
-        .build();
+    UserPlafond userPlafond =
+        UserPlafond.builder()
+            .user(user)
+            .plafond(bronzePlafond)
+            .maxAmount(bronzePlafond.getMaxAmount())
+            .remainingAmount(bronzePlafond.getMaxAmount()) // Awal sama dengan max_amount
+            .isActive(true)
+            .build();
 
     userPlafondRepository.save(userPlafond);
   }
@@ -195,11 +191,8 @@ public class AuthService implements UserDetailsService {
   /**
    * LOGIN USER - Handle login dan generate JWT tokens
    *
-   * <p>
-   * Flow: 1. Validate username & password via AuthenticationManager 2. Load user
-   * dari database
-   * 3. Generate access token (15 menit) & refresh token (7 hari) 4. Save refresh
-   * token ke database
+   * <p>Flow: 1. Validate username & password via AuthenticationManager 2. Load user dari database
+   * 3. Generate access token (15 menit) & refresh token (7 hari) 4. Save refresh token ke database
    * 5. Return tokens ke client
    *
    * @param request LoginRequest dengan username & password
@@ -222,9 +215,10 @@ public class AuthService implements UserDetailsService {
 
       // STEP 2: Get user dari database
       // Kalau sampai sini, berarti username & password BENAR
-      User user = userRepository
-          .findByUsername(request.getUsername())
-          .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
+      User user =
+          userRepository
+              .findByUsername(request.getUsername())
+              .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
 
       // STEP 3: Check apakah user aktif
       if (Boolean.FALSE.equals(user.getIsActive())) {
@@ -245,20 +239,23 @@ public class AuthService implements UserDetailsService {
       // Access Token: 15 menit (untuk akses API)
       // Refresh Token: 7 hari (untuk generate access token baru)
       Map<String, Object> claims = new HashMap<>();
-      claims.put("authorities", userDetails.getAuthorities().stream()
-          .map(org.springframework.security.core.GrantedAuthority::getAuthority)
-          .collect(Collectors.toList()));
+      claims.put(
+          "authorities",
+          userDetails.getAuthorities().stream()
+              .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+              .collect(Collectors.toList()));
 
       String accessToken = jwtService.generateAccessToken(claims, userDetails);
       String refreshTokenString = jwtService.generateRefreshToken(userDetails);
 
       // STEP 6: Save refresh token ke database
       // Disimpan supaya bisa di-revoke (logout, security breach, dll)
-      RefreshToken refreshToken = RefreshToken.builder()
-          .token(refreshTokenString)
-          .user(user)
-          .expiryDate(LocalDateTime.now().plusDays(7)) // 7 days
-          .build();
+      RefreshToken refreshToken =
+          RefreshToken.builder()
+              .token(refreshTokenString)
+              .user(user)
+              .expiryDate(LocalDateTime.now().plusDays(7)) // 7 days
+              .build();
       refreshTokenRepository.save(refreshToken);
 
       // STEP 7: Build response
@@ -268,10 +265,11 @@ public class AuthService implements UserDetailsService {
           .type("Bearer") // Token type untuk header
           .username(user.getUsername())
           .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
-          .permissions(user.getRoles().stream()
-              .flatMap(role -> role.getPermissions().stream())
-              .map(com.example.loanova.entity.Permission::getPermissionName)
-              .collect(Collectors.toSet()))
+          .permissions(
+              user.getRoles().stream()
+                  .flatMap(role -> role.getPermissions().stream())
+                  .map(com.example.loanova.entity.Permission::getPermissionName)
+                  .collect(Collectors.toSet()))
           .build();
 
     } catch (BadCredentialsException e) {
@@ -283,14 +281,10 @@ public class AuthService implements UserDetailsService {
   /**
    * LOAD USER BY USERNAME - Method dari interface UserDetailsService
    *
-   * <p>
-   * Method ini dipanggil oleh Spring Security saat: 1. Login - untuk validate
-   * password 2. Setiap
+   * <p>Method ini dipanggil oleh Spring Security saat: 1. Login - untuk validate password 2. Setiap
    * request - untuk validate JWT token
    *
-   * <p>
-   * Convert entity User → UserDetails: - User = entity JPA kita (database) -
-   * UserDetails =
+   * <p>Convert entity User → UserDetails: - User = entity JPA kita (database) - UserDetails =
    * interface Spring Security (standard format)
    *
    * @param username Username/email user
@@ -300,9 +294,10 @@ public class AuthService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     // Load user dari database
-    User user = userRepository
-        .findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan: " + username));
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan: " + username));
 
     // Convert entity User → Spring Security User (implements UserDetails)
     // org.springframework.security.core.userdetails.User = class dari Spring
@@ -313,38 +308,31 @@ public class AuthService implements UserDetailsService {
     // 2. Permissions: Map Permission entity → GrantedAuthority tanpa prefix
     java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
 
-    user.getRoles().forEach(role -> {
-      // Add Role
-      authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
-      // Add Permissions dari Role tersebut
-      role.getPermissions().forEach(permission -> {
-        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
-      });
-    });
+    user.getRoles()
+        .forEach(
+            role -> {
+              // Add Role
+              authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+              // Add Permissions dari Role tersebut
+              role.getPermissions()
+                  .forEach(
+                      permission -> {
+                        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+                      });
+            });
 
     return new org.springframework.security.core.userdetails.User(
-        user.getUsername(),
-        user.getPassword(),
-        user.getIsActive(),
-        true,
-        true,
-        true,
-        authorities);
+        user.getUsername(), user.getPassword(), user.getIsActive(), true, true, true, authorities);
   }
 
   /**
    * REFRESH ACCESS TOKEN - Generate access token baru pakai refresh token
    *
-   * <p>
-   * Flow: 1. Validate refresh token (signature, expiration) 2. Check refresh
-   * token di database
+   * <p>Flow: 1. Validate refresh token (signature, expiration) 2. Check refresh token di database
    * 3. Generate access token baru 4. Return access token baru
    *
-   * <p>
-   * Kenapa perlu refresh? - Access token lifetime pendek (15 menit) untuk
-   * security - Refresh
-   * token lifetime panjang (7 hari) untuk UX - User tidak perlu login ulang
-   * setiap 15 menit
+   * <p>Kenapa perlu refresh? - Access token lifetime pendek (15 menit) untuk security - Refresh
+   * token lifetime panjang (7 hari) untuk UX - User tidak perlu login ulang setiap 15 menit
    *
    * @param refreshTokenString Refresh token dari login response
    * @return AuthResponse dengan access token baru
@@ -361,9 +349,10 @@ public class AuthService implements UserDetailsService {
     }
 
     // STEP 2: Load user dari database
-    User user = userRepository
-        .findByUsername(username)
-        .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
 
     // STEP 3: Load UserDetails untuk validate token
     UserDetails userDetails = loadUserByUsername(username);
@@ -375,9 +364,10 @@ public class AuthService implements UserDetailsService {
 
     // STEP 5: Check refresh token di database
     // Refresh token harus ada di database dan belum expired
-    RefreshToken refreshToken = refreshTokenRepository
-        .findByToken(refreshTokenString)
-        .orElseThrow(() -> new BusinessException("Refresh token tidak ditemukan"));
+    RefreshToken refreshToken =
+        refreshTokenRepository
+            .findByToken(refreshTokenString)
+            .orElseThrow(() -> new BusinessException("Refresh token tidak ditemukan"));
 
     // STEP 6: Check expiration date & revocation status
     if (refreshToken.isExpired()) {
@@ -392,9 +382,11 @@ public class AuthService implements UserDetailsService {
 
     // STEP 7: Token Rotation - Generate access & refresh token BARU
     Map<String, Object> claims = new HashMap<>();
-    claims.put("authorities", userDetails.getAuthorities().stream()
-        .map(org.springframework.security.core.GrantedAuthority::getAuthority)
-        .collect(Collectors.toList()));
+    claims.put(
+        "authorities",
+        userDetails.getAuthorities().stream()
+            .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+            .collect(Collectors.toList()));
 
     String newAccessToken = jwtService.generateAccessToken(claims, userDetails);
     String newRefreshTokenString = jwtService.generateRefreshToken(userDetails);
@@ -417,23 +409,21 @@ public class AuthService implements UserDetailsService {
         .type("Bearer")
         .username(user.getUsername())
         .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
-        .permissions(user.getRoles().stream()
-            .flatMap(role -> role.getPermissions().stream())
-            .map(com.example.loanova.entity.Permission::getPermissionName)
-            .collect(Collectors.toSet()))
+        .permissions(
+            user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(com.example.loanova.entity.Permission::getPermissionName)
+                .collect(Collectors.toSet()))
         .build();
   }
 
   /**
    * LOGOUT - Mematikan session user
    *
-   * <p>
-   * Flow: 1. Blacklist access token di Redis (stateless) 2. Hapus refresh token
-   * di database
+   * <p>Flow: 1. Blacklist access token di Redis (stateless) 2. Hapus refresh token di database
    * (stateful)
    *
-   * @param accessToken        Access token dari header (setelah dipotong 'Bearer
-   *                           ')
+   * @param accessToken Access token dari header (setelah dipotong 'Bearer ')
    * @param refreshTokenString Refresh token dari body
    */
   @Transactional
@@ -454,11 +444,13 @@ public class AuthService implements UserDetailsService {
   /** LUPA KATA SANDI - Generate token reset password */
   @Transactional
   public void forgotPassword(String email) {
-    User user = userRepository
-        .findByEmail(email)
-        .orElseThrow(
-            () -> new ResourceNotFoundException(
-                "User dengan email " + email + " tidak ditemukan"));
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "User dengan email " + email + " tidak ditemukan"));
 
     // Tandai token lama yang belum terpakai sebagai terpakai (jika ada)
     passwordResetTokenRepository
@@ -470,13 +462,14 @@ public class AuthService implements UserDetailsService {
             });
 
     String token = UUID.randomUUID().toString();
-    PasswordResetToken passwordResetToken = PasswordResetToken.builder()
-        .token(token)
-        .user(user)
-        .isUsed(false)
-        .expiratedAt(LocalDateTime.now().plusMinutes(5)) // kadaluarsa 5 menit
-        // createdAt ditangani oleh @PrePersist
-        .build();
+    PasswordResetToken passwordResetToken =
+        PasswordResetToken.builder()
+            .token(token)
+            .user(user)
+            .isUsed(false)
+            .expiratedAt(LocalDateTime.now().plusMinutes(5)) // kadaluarsa 5 menit
+            // createdAt ditangani oleh @PrePersist
+            .build();
 
     passwordResetTokenRepository.save(passwordResetToken);
 
@@ -491,10 +484,11 @@ public class AuthService implements UserDetailsService {
   /** RESET KATA SANDI - Ganti password dengan token valid */
   @Transactional
   public void resetPassword(String token, String newPassword) {
-    PasswordResetToken resetToken = passwordResetTokenRepository
-        .findByToken(token)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Token tidak valid atau sudah kadaluarsa"));
+    PasswordResetToken resetToken =
+        passwordResetTokenRepository
+            .findByToken(token)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Token tidak valid atau sudah kadaluarsa"));
 
     if (resetToken.getIsUsed()) {
       throw new BusinessException("Token sudah pernah digunakan");
@@ -516,19 +510,17 @@ public class AuthService implements UserDetailsService {
   /**
    * GANTI PASSWORD - Mengubah password user yang sedang login
    *
-   * <p>
-   * Flow: 1. Validate password lama 2. Validate password baru (!= password lama)
-   * 3. Update
-   * password 4. Revoke Refresh Token (Hapus sesi di DB) 5. Blacklist Access Token
-   * (Hapus sesi di
+   * <p>Flow: 1. Validate password lama 2. Validate password baru (!= password lama) 3. Update
+   * password 4. Revoke Refresh Token (Hapus sesi di DB) 5. Blacklist Access Token (Hapus sesi di
    * Redis/Memory)
    */
   @Transactional
   public void changePassword(String username, String accessToken, ChangePasswordRequest request) {
     // 1. Ambil user dari database
-    User user = userRepository
-        .findByUsername(username)
-        .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
+    User user =
+        userRepository
+            .findByUsername(username)
+            .orElseThrow(() -> new BusinessException("User tidak ditemukan"));
 
     // 2. Cek apakah password lama sesuai
     if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
@@ -558,14 +550,10 @@ public class AuthService implements UserDetailsService {
   /**
    * LOGIN WITH FIREBASE GOOGLE - Handle login menggunakan Google via Firebase
    *
-   * <p>
-   * Flow:
-   * 1. Verify Firebase ID Token menggunakan Firebase Admin SDK
-   * 2. Extract email dan Google UID dari token
-   * 3. Cek apakah user dengan Google ID sudah ada → Login langsung
-   * 4. Cek apakah user dengan email sudah ada → Link Google ID (Account Linking)
-   * 5. Jika belum ada → Create user baru dengan role CUSTOMER
-   * 6. Generate JWT tokens dan return
+   * <p>Flow: 1. Verify Firebase ID Token menggunakan Firebase Admin SDK 2. Extract email dan Google
+   * UID dari token 3. Cek apakah user dengan Google ID sudah ada → Login langsung 4. Cek apakah
+   * user dengan email sudah ada → Link Google ID (Account Linking) 5. Jika belum ada → Create user
+   * baru dengan role CUSTOMER 6. Generate JWT tokens dan return
    *
    * @param request FirebaseGoogleLoginRequest dengan idToken dan fcmToken
    * @return AuthResponse dengan access token & refresh token
@@ -637,13 +625,12 @@ public class AuthService implements UserDetailsService {
 
     } catch (FirebaseAuthException e) {
       System.err.println("Firebase Auth Error: " + e.getMessage());
-      throw new BusinessException("Token Google tidak valid atau sudah expired. Silakan coba lagi.");
+      throw new BusinessException(
+          "Token Google tidak valid atau sudah expired. Silakan coba lagi.");
     }
   }
 
-  /**
-   * HELPER: Create user baru untuk Google Sign-In
-   */
+  /** HELPER: Create user baru untuk Google Sign-In */
   private User createGoogleUser(String email, String googleUid, String name) {
     // Generate username dari email (bagian sebelum @)
     String baseUsername = email.split("@")[0];
@@ -657,20 +644,22 @@ public class AuthService implements UserDetailsService {
     }
 
     // Get role CUSTOMER
-    Role customerRole = roleRepository
-        .findByRoleName("CUSTOMER")
-        .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
+    Role customerRole =
+        roleRepository
+            .findByRoleName("CUSTOMER")
+            .orElseThrow(() -> new BusinessException("Role CUSTOMER tidak ditemukan di sistem"));
 
     // Create user - password NULL untuk Google user (login via Google saja)
-    User user = User.builder()
-        .username(username)
-        .email(email)
-        .password(null) // NULL untuk Google user - tidak perlu password
-        .googleId(googleUid)
-        .authProvider("GOOGLE")
-        .isActive(true)
-        .roles(new HashSet<>(Collections.singletonList(customerRole)))
-        .build();
+    User user =
+        User.builder()
+            .username(username)
+            .email(email)
+            .password(null) // NULL untuk Google user - tidak perlu password
+            .googleId(googleUid)
+            .authProvider("GOOGLE")
+            .isActive(true)
+            .roles(new HashSet<>(Collections.singletonList(customerRole)))
+            .build();
 
     User savedUser = userRepository.save(user);
 
@@ -680,42 +669,50 @@ public class AuthService implements UserDetailsService {
     return savedUser;
   }
 
-  /**
-   * HELPER: Generate AuthResponse dengan JWT tokens
-   */
+  /** HELPER: Generate AuthResponse dengan JWT tokens */
   private AuthResponse generateAuthResponse(User user) {
     // Build authorities for JWT claims
     java.util.List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
-    user.getRoles().forEach(role -> {
-      authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
-      role.getPermissions().forEach(permission -> {
-        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
-      });
-    });
+    user.getRoles()
+        .forEach(
+            role -> {
+              authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getRoleName()));
+              role.getPermissions()
+                  .forEach(
+                      permission -> {
+                        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+                      });
+            });
 
     // Generate tokens
     Map<String, Object> claims = new HashMap<>();
-    claims.put("authorities", authorities.stream()
-        .map(SimpleGrantedAuthority::getAuthority)
-        .collect(Collectors.toList()));
+    claims.put(
+        "authorities",
+        authorities.stream()
+            .map(SimpleGrantedAuthority::getAuthority)
+            .collect(Collectors.toList()));
 
     // Create UserDetails for token generation
-    org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
-        user.getUsername(),
-        user.getPassword() != null ? user.getPassword() : "", // Empty string for Google users
-        user.getIsActive(),
-        true, true, true,
-        authorities);
+    org.springframework.security.core.userdetails.User userDetails =
+        new org.springframework.security.core.userdetails.User(
+            user.getUsername(),
+            user.getPassword() != null ? user.getPassword() : "", // Empty string for Google users
+            user.getIsActive(),
+            true,
+            true,
+            true,
+            authorities);
 
     String accessToken = jwtService.generateAccessToken(claims, userDetails);
     String refreshTokenString = jwtService.generateRefreshToken(userDetails);
 
     // Save refresh token
-    RefreshToken refreshToken = RefreshToken.builder()
-        .token(refreshTokenString)
-        .user(user)
-        .expiryDate(LocalDateTime.now().plusDays(7))
-        .build();
+    RefreshToken refreshToken =
+        RefreshToken.builder()
+            .token(refreshTokenString)
+            .user(user)
+            .expiryDate(LocalDateTime.now().plusDays(7))
+            .build();
     refreshTokenRepository.save(refreshToken);
 
     // Build response
@@ -725,10 +722,11 @@ public class AuthService implements UserDetailsService {
         .type("Bearer")
         .username(user.getUsername())
         .roles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()))
-        .permissions(user.getRoles().stream()
-            .flatMap(role -> role.getPermissions().stream())
-            .map(com.example.loanova.entity.Permission::getPermissionName)
-            .collect(Collectors.toSet()))
+        .permissions(
+            user.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(com.example.loanova.entity.Permission::getPermissionName)
+                .collect(Collectors.toSet()))
         .build();
   }
 }

@@ -100,7 +100,8 @@ public class AuthController {
   public ResponseEntity<ApiResponse<Void>> logout(
       @RequestHeader("Authorization") String authHeader,
       @Valid @RequestBody RefreshTokenRequest request) {
-    String accessToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
+    String accessToken =
+        authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
     authService.logout(accessToken, request.getRefreshToken());
     return ResponseUtil.success(null, "Logout berhasil", HttpStatus.OK);
   }
@@ -137,7 +138,8 @@ public class AuthController {
     String username = authentication.getName();
 
     // Ambil raw access token (hilangkan "Bearer ")
-    String accessToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
+    String accessToken =
+        authHeader.startsWith("Bearer ") ? authHeader.substring(7).trim() : authHeader.trim();
 
     authService.changePassword(username, accessToken, request);
 
@@ -149,16 +151,12 @@ public class AuthController {
    * FIREBASE GOOGLE LOGIN ENDPOINT
    *
    * <p>Endpoint untuk login menggunakan Google via Firebase Authentication.
-   * 
-   * <p>Flow:
-   * 1. Android melakukan Google Sign-In via Firebase
-   * 2. Android mendapatkan Firebase ID Token
-   * 3. Android kirim ID Token ke endpoint ini
-   * 4. Backend verify token dengan Firebase Admin SDK
-   * 5. Backend create/link user dan return JWT
    *
-   * <p>Request: POST /api/auth/firebase-google
-   * Body: { "idToken": "eyJhbGc...", "fcmToken": "..." }
+   * <p>Flow: 1. Android melakukan Google Sign-In via Firebase 2. Android mendapatkan Firebase ID
+   * Token 3. Android kirim ID Token ke endpoint ini 4. Backend verify token dengan Firebase Admin
+   * SDK 5. Backend create/link user dan return JWT
+   *
+   * <p>Request: POST /api/auth/firebase-google Body: { "idToken": "eyJhbGc...", "fcmToken": "..." }
    *
    * <p>Response: Same as /api/auth/login
    */

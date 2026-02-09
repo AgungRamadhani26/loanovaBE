@@ -1,27 +1,55 @@
+# =============================================================================
+# CI PIPELINE UNTUK LOANOVA BACKEND
+# =============================================================================
+# 
+# File ini mendefinisikan GitHub Actions workflow untuk Continuous Integration.
+# Workflow ini akan berjalan otomatis setiap kali ada:
+# - Push ke branch main/master
+# - Pull Request ke branch main/master
+#
+# STEPS:
+# 1. Checkout kode dari repository
+# 2. Setup Java 21 (Temurin distribution)
+# 3. Jalankan Spotless Check (format kode)
+# 4. Build project dengan Maven
+# =============================================================================
+
 name: Java CI
 
+# Trigger: Kapan workflow ini dijalankan
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master" ]  # Jalankan saat push ke main/master
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "main", "master" ]  # Jalankan saat PR ke main/master
 
 jobs:
   build:
+    # Runner: Menggunakan Ubuntu terbaru dari GitHub
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    # Step 1: Checkout - Mengambil kode dari repository
+    - name: Checkout Repository
+      uses: actions/checkout@v4
     
+    # Step 2: Setup JDK - Menginstall Java 21
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
-        distribution: 'temurin'
-        cache: maven
+        distribution: 'temurin'    # Eclipse Temurin (pengganti AdoptOpenJDK)
+        cache: maven               # Cache dependencies Maven untuk speed up
         
+    # Step 3: Permission - Membuat Maven Wrapper bisa dieksekusi
     - name: Make Maven Wrapper Executable
       run: chmod +x mvnw
         
+    # Step 4: Spotless Check - Memeriksa format kode
+    # Jika ada kode yang tidak sesuai Google Java Format, build akan FAIL
     - name: Run Spotless Check
       run: ./mvnw spotless:check
+      
+    # Step 5: Build - Compile project (skip tests untuk speed)
+    - name: Build with Maven
+      run: ./mvnw compile -DskipTests

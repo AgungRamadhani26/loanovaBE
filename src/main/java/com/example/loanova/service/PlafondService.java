@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * PLAFOND SERVICE Layer bisnis untuk mengelola data plafond pinjaman. Menangani
- * logika validasi
+ * PLAFOND SERVICE Layer bisnis untuk mengelola data plafond pinjaman. Menangani logika validasi
  * duplikasi, soft delete, dan pemulihan data.
  */
 @Service
@@ -28,13 +27,11 @@ public class PlafondService {
   private final LoanApplicationRepository loanApplicationRepository;
 
   /** Mendapatkan semua plafond yang aktif */
-
   public List<PlafondResponse> getAllPlafonds() {
     return plafondRepository.findAll().stream().map(this::toResponse).toList();
   }
 
   /** Mendapatkan detail plafond berdasarkan ID */
-
   public PlafondResponse getPlafondById(Long id) {
     return plafondRepository
         .findById(id)
@@ -44,12 +41,10 @@ public class PlafondService {
   }
 
   /**
-   * Menambahkan plafond baru. Melakukan pengecekan duplikasi nama baik pada data
-   * aktif maupun yang
+   * Menambahkan plafond baru. Melakukan pengecekan duplikasi nama baik pada data aktif maupun yang
    * sudah dihapus.
    */
   @Transactional
-
   public PlafondResponse createPlafond(PlafondRequest request) {
     if (plafondRepository.existsByName(request.getName())) {
       throw new DuplicateResourceException(
@@ -63,39 +58,45 @@ public class PlafondService {
               + " sudah dihapus namun masih tersimpan di sistem. Silakan gunakan nama lain.");
     }
 
-    Plafond plafond = Plafond.builder()
-        .name(request.getName())
-        .description(request.getDescription())
-        .maxAmount(request.getMaxAmount())
-        .interestRate(request.getInterestRate())
-        .tenorMin(request.getTenorMin())
-        .tenorMax(request.getTenorMax())
-        .build();
+    Plafond plafond =
+        Plafond.builder()
+            .name(request.getName())
+            .description(request.getDescription())
+            .maxAmount(request.getMaxAmount())
+            .interestRate(request.getInterestRate())
+            .tenorMin(request.getTenorMin())
+            .tenorMax(request.getTenorMax())
+            .build();
 
     return toResponse(plafondRepository.save(plafond));
   }
 
   /** Menghapus plafond (soft delete) */
   @Transactional
-
   public void deletePlafond(Long id) {
-    Plafond plafond = plafondRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
+    Plafond plafond =
+        plafondRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException("Maaf, tidak ada data plafond dengan id " + id));
 
     // VALIDASI SAFE-DELETE 1: Cek apakah masih digunakan oleh user di mapping
     // UserPlafond
     if (userPlafondRepository.existsByPlafondId(id)) {
       throw new BusinessException(
-          "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena masih digunakan oleh beberapa customer.");
+          "Plafond '"
+              + plafond.getName()
+              + "' tidak bisa dihapus karena masih digunakan oleh beberapa customer.");
     }
 
     // VALIDASI SAFE-DELETE 2: Cek apakah ada riwayat pinjaman yang merujuk paket
     // ini
     if (loanApplicationRepository.existsByPlafondId(id)) {
       throw new BusinessException(
-          "Plafond '" + plafond.getName() + "' tidak bisa dihapus karena memiliki riwayat pengajuan pinjaman.");
+          "Plafond '"
+              + plafond.getName()
+              + "' tidak bisa dihapus karena memiliki riwayat pengajuan pinjaman.");
     }
 
     plafond.softDelete();

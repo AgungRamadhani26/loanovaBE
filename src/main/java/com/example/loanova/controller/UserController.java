@@ -42,7 +42,8 @@ public class UserController {
   // User hanya bisa mengakses profil miliknya sendiri
   @PreAuthorize("isAuthenticated() and #username == authentication.name")
   @GetMapping("/by-username/{username}")
-  public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
+  public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(
+      @PathVariable String username) {
     UserResponse user = userService.getUserByUsername(username);
     return ResponseUtil.ok(user, "Berhasil mengambil data pengguna");
   }

@@ -12,43 +12,39 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * DASHBOARD CONTROLLER
- * REST endpoints untuk statistik dashboard
- * 
- * Role-based data filtering:
- * - SUPERADMIN/BACKOFFICE: Semua data
- * - MARKETING/BRANCHMANAGER: Data cabang sendiri
+ * DASHBOARD CONTROLLER REST endpoints untuk statistik dashboard
+ *
+ * <p>Role-based data filtering: - SUPERADMIN/BACKOFFICE: Semua data - MARKETING/BRANCHMANAGER: Data
+ * cabang sendiri
  */
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
 
-    private final DashboardService dashboardService;
+  private final DashboardService dashboardService;
 
-    /**
-     * GET DASHBOARD STATISTICS
-     * Mengembalikan statistik untuk ditampilkan di dashboard
-     * 
-     * @param authentication - User yang login
-     * @return ApiResponse dengan DashboardStatisticsResponse
-     */
-    @GetMapping("/statistics")
-    @PreAuthorize("hasAuthority('DASHBOARD:STATISTICS')")
-    public ResponseEntity<ApiResponse<DashboardStatisticsResponse>> getStatistics(
-            Authentication authentication) {
-        
-        String username = authentication.getName();
-        DashboardStatisticsResponse statistics = dashboardService.getStatistics(username);
-        
-        return ResponseEntity.ok(
-            ApiResponse.<DashboardStatisticsResponse>builder()
-                .success(true)
-                .message("Berhasil mengambil statistik dashboard")
-                .data(statistics)
-                .code(200)
-                .timestamp(java.time.Instant.now())
-                .build()
-        );
-    }
+  /**
+   * GET DASHBOARD STATISTICS Mengembalikan statistik untuk ditampilkan di dashboard
+   *
+   * @param authentication - User yang login
+   * @return ApiResponse dengan DashboardStatisticsResponse
+   */
+  @GetMapping("/statistics")
+  @PreAuthorize("hasAuthority('DASHBOARD:STATISTICS')")
+  public ResponseEntity<ApiResponse<DashboardStatisticsResponse>> getStatistics(
+      Authentication authentication) {
+
+    String username = authentication.getName();
+    DashboardStatisticsResponse statistics = dashboardService.getStatistics(username);
+
+    return ResponseEntity.ok(
+        ApiResponse.<DashboardStatisticsResponse>builder()
+            .success(true)
+            .message("Berhasil mengambil statistik dashboard")
+            .data(statistics)
+            .code(200)
+            .timestamp(java.time.Instant.now())
+            .build());
+  }
 }

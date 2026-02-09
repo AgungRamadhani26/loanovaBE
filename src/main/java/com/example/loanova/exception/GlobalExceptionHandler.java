@@ -24,21 +24,22 @@ import org.springframework.web.multipart.MultipartFile;
 public class GlobalExceptionHandler {
 
   /**
-   * GLOBAL BINDER
-   * Gunanya: Jika ada field MultipartFile yang dikirim sebagai String kosong "" 
-   * (alias "kerangka input" tapi gak ada filenya), maka otomatis diubah jadi NULL.
-   * Ini MENCEGAH Error 500 "Failed to parse multipart/convert".
+   * GLOBAL BINDER Gunanya: Jika ada field MultipartFile yang dikirim sebagai String kosong ""
+   * (alias "kerangka input" tapi gak ada filenya), maka otomatis diubah jadi NULL. Ini MENCEGAH
+   * Error 500 "Failed to parse multipart/convert".
    */
   @InitBinder
   public void initBinder(WebDataBinder binder) {
-    binder.registerCustomEditor(MultipartFile.class, new PropertyEditorSupport() {
-      @Override
-      public void setAsText(String text) {
-        if (text == null || text.trim().isEmpty()) {
-          setValue(null);
-        }
-      }
-    });
+    binder.registerCustomEditor(
+        MultipartFile.class,
+        new PropertyEditorSupport() {
+          @Override
+          public void setAsText(String text) {
+            if (text == null || text.trim().isEmpty()) {
+              setValue(null);
+            }
+          }
+        });
   }
 
   /* Untuk exception jika ukuran file melebihi batas */
@@ -73,10 +74,8 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handle BindException untuk validasi form-data (multipart/form-data) Terjadi
-   * saat menggunakan
-   * 
-   * @ModelAttribute dengan @Valid pada form-data request
+   * Handle BindException untuk validasi form-data (multipart/form-data) Terjadi saat
+   * menggunakan @ModelAttribute dengan @Valid pada form-data request
    */
   @ExceptionHandler(BindException.class)
   public ResponseEntity<ApiResponse<Object>> handleBindException(BindException ex) {
@@ -98,8 +97,7 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handle Access Denied - 403 Forbidden Ketika user tidak punya akses ke
-   * endpoint (role tidak
+   * Handle Access Denied - 403 Forbidden Ketika user tidak punya akses ke endpoint (role tidak
    * sesuai) Contoh: MARKETING coba akses endpoint SUPERADMIN
    */
   @ExceptionHandler(AccessDeniedException.class)
@@ -108,10 +106,7 @@ public class GlobalExceptionHandler {
         HttpStatus.FORBIDDEN, "Anda tidak memiliki akses untuk mengakses resource ini");
   }
 
-  /**
-   * Handle Authentication - 401 Unauthorized Ketika user belum login / token
-   * invalid
-   */
+  /** Handle Authentication - 401 Unauthorized Ketika user belum login / token invalid */
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ApiResponse<Object>> handleAuthentication(AuthenticationException ex) {
     return ResponseUtil.error(
@@ -123,9 +118,9 @@ public class GlobalExceptionHandler {
     ex.printStackTrace(); // DEBUGGING: Print error stack trace to console
     // Return error message untuk debugging (di production sebaiknya generic message
     // saja)
-    String errorMessage = ex.getMessage() != null ? ex.getMessage() : "Terjadi kesalahan pada server";
+    String errorMessage =
+        ex.getMessage() != null ? ex.getMessage() : "Terjadi kesalahan pada server";
     return ResponseUtil.error(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        "Terjadi kesalahan pada server: " + errorMessage);
+        HttpStatus.INTERNAL_SERVER_ERROR, "Terjadi kesalahan pada server: " + errorMessage);
   }
 }

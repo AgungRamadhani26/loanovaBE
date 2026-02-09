@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * LOAN APPLICATION REQUEST DTO untuk pengajuan pinjaman baru oleh CUSTOMER. Beberapa field
- * snapshot akan diambil otomatis dari user profile.
+ * LOAN APPLICATION REQUEST DTO untuk pengajuan pinjaman baru oleh CUSTOMER. Beberapa field snapshot
+ * akan diambil otomatis dari user profile.
  */
 @Data
 @Builder
@@ -21,7 +21,6 @@ public class LoanApplicationRequest {
 
   @NotBlank(message = "Branch ID wajib diisi")
   private String branchId;
-
 
   @NotBlank(message = "Jumlah pinjaman wajib diisi")
   private String amount;

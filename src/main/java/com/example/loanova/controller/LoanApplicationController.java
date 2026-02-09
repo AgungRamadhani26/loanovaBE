@@ -17,12 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * LOAN APPLICATION CONTROLLER - REST endpoints untuk proses pengajuan pinjaman
- * Fitur: 1. Customer:
- * submit loan, view own applications 2. Marketing: review pending applications
- * (PROCEED/REJECT) 3.
- * Branch Manager: approve applications (APPROVE/REJECT) 4. Backoffice: disburse
- * approved
+ * LOAN APPLICATION CONTROLLER - REST endpoints untuk proses pengajuan pinjaman Fitur: 1. Customer:
+ * submit loan, view own applications 2. Marketing: review pending applications (PROCEED/REJECT) 3.
+ * Branch Manager: approve applications (APPROVE/REJECT) 4. Backoffice: disburse approved
  * applications
  */
 @RestController
@@ -36,7 +33,7 @@ public class LoanApplicationController {
    * CUSTOMER - Submit loan application
    *
    * @param authentication - User yang login (CUSTOMER)
-   * @param request        - Data pengajuan pinjaman
+   * @param request - Data pengajuan pinjaman
    * @return ApiResponse dengan LoanApplicationResponse
    */
   // Yang bisa submitLoanApplication hanya CUSTOMER
@@ -45,15 +42,14 @@ public class LoanApplicationController {
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> submitLoanApplication(
       Authentication authentication, @Valid @ModelAttribute LoanApplicationRequest request) {
     String username = authentication.getName();
-    LoanApplicationResponse response = loanApplicationService.submitLoanApplication(username, request);
+    LoanApplicationResponse response =
+        loanApplicationService.submitLoanApplication(username, request);
     return ResponseUtil.created(response, "Pengajuan pinjaman berhasil disubmit");
   }
 
   /**
-   * ALL ROLES - Get all loan applications
-   * SUPERADMIN/BACKOFFICE: All data
-   * MARKETING/BRANCHMANAGER: Branch data
-   * CUSTOMER: Own data
+   * ALL ROLES - Get all loan applications SUPERADMIN/BACKOFFICE: All data MARKETING/BRANCHMANAGER:
+   * Branch data CUSTOMER: Own data
    *
    * @param authentication - User login
    * @return ApiResponse list
@@ -87,7 +83,7 @@ public class LoanApplicationController {
    * CUSTOMER/MARKETING/BRANCH_MANAGER/BACKOFFICE - Get application detail by ID
    *
    * @param authentication - User yang login
-   * @param id             - ID loan application
+   * @param id - ID loan application
    * @return ApiResponse dengan LoanApplicationResponse
    */
   // Yang bisa akses getApplicationDetail adalah semua role
@@ -112,7 +108,8 @@ public class LoanApplicationController {
   public ResponseEntity<ApiResponse<List<ApplicationHistoryResponse>>> getApplicationHistory(
       @PathVariable Long id, Authentication authentication) {
     String username = authentication.getName();
-    List<ApplicationHistoryResponse> responses = loanApplicationService.getApplicationHistory(username, id);
+    List<ApplicationHistoryResponse> responses =
+        loanApplicationService.getApplicationHistory(username, id);
     return ResponseUtil.ok(responses, "Berhasil mengambil history pengajuan pinjaman");
   }
 
@@ -128,7 +125,8 @@ public class LoanApplicationController {
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getPendingApplications(
       Authentication authentication) {
     String username = authentication.getName();
-    List<LoanApplicationResponse> responses = loanApplicationService.getPendingApplicationsForMarketing(username);
+    List<LoanApplicationResponse> responses =
+        loanApplicationService.getPendingApplicationsForMarketing(username);
     return ResponseUtil.ok(responses, "Berhasil mengambil daftar pengajuan pending review");
   }
 
@@ -136,8 +134,8 @@ public class LoanApplicationController {
    * MARKETING - Review loan application (PROCEED/REJECT)
    *
    * @param authentication - User yang login (MARKETING)
-   * @param id             - ID loan application
-   * @param request        - Action PROCEED atau REJECT dengan optional comment
+   * @param id - ID loan application
+   * @param request - Action PROCEED atau REJECT dengan optional comment
    * @return ApiResponse dengan LoanApplicationResponse
    */
   // Yang bisa akses reviewApplication hanya MARKETING
@@ -148,7 +146,8 @@ public class LoanApplicationController {
       @PathVariable Long id,
       @Valid @RequestBody LoanReviewRequest request) {
     String username = authentication.getName();
-    LoanApplicationResponse response = loanApplicationService.reviewByMarketing(username, id, request);
+    LoanApplicationResponse response =
+        loanApplicationService.reviewByMarketing(username, id, request);
     return ResponseUtil.ok(response, "Review berhasil diproses");
   }
 
@@ -164,8 +163,8 @@ public class LoanApplicationController {
   public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getWaitingApprovalApplications(
       Authentication authentication) {
     String username = authentication.getName();
-    List<LoanApplicationResponse> responses = loanApplicationService
-        .getWaitingApprovalApplicationsForBranchManager(username);
+    List<LoanApplicationResponse> responses =
+        loanApplicationService.getWaitingApprovalApplicationsForBranchManager(username);
     return ResponseUtil.ok(responses, "Berhasil mengambil daftar pengajuan waiting approval");
   }
 
@@ -173,8 +172,8 @@ public class LoanApplicationController {
    * BRANCH_MANAGER - Approve loan application (APPROVE/REJECT)
    *
    * @param authentication - User yang login (BRANCH_MANAGER)
-   * @param id             - ID loan application
-   * @param request        - Action APPROVE atau REJECT dengan optional comment
+   * @param id - ID loan application
+   * @param request - Action APPROVE atau REJECT dengan optional comment
    * @return ApiResponse dengan LoanApplicationResponse
    */
   // Yang bisa akses approveApplication hanya BRANCHMANAGER
@@ -185,21 +184,23 @@ public class LoanApplicationController {
       @PathVariable Long id,
       @Valid @RequestBody LoanReviewRequest request) {
     String username = authentication.getName();
-    LoanApplicationResponse response = loanApplicationService.approveByBranchManager(username, id, request);
+    LoanApplicationResponse response =
+        loanApplicationService.approveByBranchManager(username, id, request);
     return ResponseUtil.ok(response, "Approval berhasil diproses");
   }
 
   /**
-   * BACKOFFICE - Get waiting disbursement applications (status
-   * WAITING_DISBURSEMENT)
+   * BACKOFFICE - Get waiting disbursement applications (status WAITING_DISBURSEMENT)
    *
    * @return ApiResponse dengan list LoanApplicationResponse
    */
   // Yang bisa akses getWaitingDisbursementApplications hanya BACKOFFICE
   @GetMapping("/waiting-disbursement")
   @PreAuthorize("hasAuthority('LOAN:LIST_WAITING_DISBURSE')")
-  public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getWaitingDisbursementApplications() {
-    List<LoanApplicationResponse> responses = loanApplicationService.getWaitingDisbursementApplications();
+  public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>>
+      getWaitingDisbursementApplications() {
+    List<LoanApplicationResponse> responses =
+        loanApplicationService.getWaitingDisbursementApplications();
     return ResponseUtil.ok(responses, "Berhasil mengambil daftar pengajuan waiting disbursement");
   }
 
@@ -207,7 +208,7 @@ public class LoanApplicationController {
    * BACKOFFICE - Disburse loan application (status jadi DISBURSED)
    *
    * @param authentication - User yang login (BACKOFFICE)
-   * @param id             - ID loan application
+   * @param id - ID loan application
    * @return ApiResponse dengan LoanApplicationResponse
    */
   // Yang bisa akses disburseApplication hanya BACKOFFICE
@@ -220,9 +221,7 @@ public class LoanApplicationController {
     return ResponseUtil.ok(response, "Pinjaman berhasil dicairkan");
   }
 
-  /**
-   * BACKOFFICE - Reject loan application during disbursement stage
-   */
+  /** BACKOFFICE - Reject loan application during disbursement stage */
   @PutMapping("/{id}/backoffice-reject")
   @PreAuthorize("hasAuthority('LOAN:REJECT_BACKOFFICE')")
   public ResponseEntity<ApiResponse<LoanApplicationResponse>> backofficeReject(
@@ -230,7 +229,8 @@ public class LoanApplicationController {
       @PathVariable Long id,
       @Valid @RequestBody LoanReviewRequest request) {
     String username = authentication.getName();
-    LoanApplicationResponse response = loanApplicationService.rejectByBackoffice(username, id, request);
+    LoanApplicationResponse response =
+        loanApplicationService.rejectByBackoffice(username, id, request);
     return ResponseUtil.ok(response, "Pencairan pinjaman berhasil ditolak");
   }
 }

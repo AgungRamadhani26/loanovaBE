@@ -24,14 +24,10 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
           + "AND la.status NOT IN ('DISBURSED', 'REJECTED')")
   boolean existsActiveApplicationByUser(@Param("user") User user);
 
-  /**
-   * Mencari loan application berdasarkan user dan status tertentu.
-   */
+  /** Mencari loan application berdasarkan user dan status tertentu. */
   List<LoanApplication> findByUserAndStatus(User user, String status);
 
-  /**
-   * Mencari loan application berdasarkan status untuk branch tertentu.
-   */
+  /** Mencari loan application berdasarkan status untuk branch tertentu. */
   @Query(
       "SELECT la FROM LoanApplication la "
           + "WHERE la.status = :status "
@@ -45,46 +41,44 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
    */
   List<LoanApplication> findByStatusOrderBySubmittedAtAsc(String status);
 
-  /**
-   * Mencari semua loan application dari user tertentu.
-   */
+  /** Mencari semua loan application dari user tertentu. */
   List<LoanApplication> findByUserOrderBySubmittedAtDesc(User user);
 
-  /**
-  * Mencari semua loan application dari branch tertentu.
-  */
+  /** Mencari semua loan application dari branch tertentu. */
   List<LoanApplication> findByBranchIdOrderBySubmittedAtDesc(Long branchId);
 
-
   /**
-   * Mencari loan application berdasarkan ID dan branch (untuk validasi akses MARKETING/BRANCHMANAGER).
+   * Mencari loan application berdasarkan ID dan branch (untuk validasi akses
+   * MARKETING/BRANCHMANAGER).
    */
   Optional<LoanApplication> findByIdAndBranchId(Long id, Long branchId);
 
-  /**
-   * Cek apakah user memiliki pinjaman yang sedang diproses (belum selesai).
-   */
-  @Query(value = "SELECT COUNT(*) FROM loan_applications WHERE user_id = :userId AND status NOT IN ('DISBURSED', 'REJECTED')", nativeQuery = true)
+  /** Cek apakah user memiliki pinjaman yang sedang diproses (belum selesai). */
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM loan_applications WHERE user_id = :userId AND status NOT IN ('DISBURSED', 'REJECTED')",
+      nativeQuery = true)
   long countActiveApplicationByUserIdNative(@Param("userId") Long userId);
 
   default boolean existsActiveApplicationByUser(Long userId) {
     return countActiveApplicationByUserIdNative(userId) > 0;
   }
 
-  /**
-   * Cek apakah ada pinjaman di suatu cabang yang statusnya belum selesai.
-   */
-  @Query(value = "SELECT COUNT(*) FROM loan_applications WHERE branch_id = :branchId AND status NOT IN ('DISBURSED', 'REJECTED')", nativeQuery = true)
+  /** Cek apakah ada pinjaman di suatu cabang yang statusnya belum selesai. */
+  @Query(
+      value =
+          "SELECT COUNT(*) FROM loan_applications WHERE branch_id = :branchId AND status NOT IN ('DISBURSED', 'REJECTED')",
+      nativeQuery = true)
   long countByBranchIdAndStatusNotInNative(@Param("branchId") Long branchId);
 
   default boolean existsByBranchIdAndStatusNotIn(Long branchId) {
     return countByBranchIdAndStatusNotInNative(branchId) > 0;
   }
 
-  /**
-   * Cek apakah ada pinjaman yang menggunakan paket plafond tertentu.
-   */
-  @Query(value = "SELECT COUNT(*) FROM loan_applications WHERE plafond_id = :plafondId", nativeQuery = true)
+  /** Cek apakah ada pinjaman yang menggunakan paket plafond tertentu. */
+  @Query(
+      value = "SELECT COUNT(*) FROM loan_applications WHERE plafond_id = :plafondId",
+      nativeQuery = true)
   long countByPlafondIdNative(@Param("plafondId") Long plafondId);
 
   default boolean existsByPlafondId(Long plafondId) {
@@ -93,13 +87,9 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
   // ==================== DASHBOARD STATISTICS QUERIES ====================
 
-  /**
-   * Get all loan applications (for aggregation in service layer)
-   */
+  /** Get all loan applications (for aggregation in service layer) */
   List<LoanApplication> findAll();
 
-  /**
-   * Get all loan applications by branch (for MARKETING/BRANCHMANAGER)
-   */
+  /** Get all loan applications by branch (for MARKETING/BRANCHMANAGER) */
   List<LoanApplication> findByBranchId(Long branchId);
 }

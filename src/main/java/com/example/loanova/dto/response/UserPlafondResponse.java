@@ -13,13 +13,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserPlafondResponse {
-   private Long id;
-   private Long userId;
-   private String username;
-   private Long plafondId;
-   private String plafondName;
-   private BigDecimal maxAmount;
-   private BigDecimal remainingAmount;
-   private Boolean isActive;
-   private LocalDateTime assignedAt;
+  private Long id;
+  private Long userId;
+  private String username;
+  private Long plafondId;
+  private String plafondName;
+  private BigDecimal maxAmount;
+  private BigDecimal remainingAmount;
+  private Boolean isActive;
+  private LocalDateTime assignedAt;
 }

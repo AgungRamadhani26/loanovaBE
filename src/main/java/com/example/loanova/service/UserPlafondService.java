@@ -15,73 +15,75 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * USER PLAFOND SERVICE Menangani logika bisnis untuk manajemen plafond user.
- */
+/** USER PLAFOND SERVICE Menangani logika bisnis untuk manajemen plafond user. */
 @Service
 @RequiredArgsConstructor
 public class UserPlafondService {
 
-   private final UserPlafondRepository userPlafondRepository;
-   private final UserRepository userRepository;
-   private final PlafondRepository plafondRepository;
-   private final LoanApplicationRepository loanApplicationRepository;
+  private final UserPlafondRepository userPlafondRepository;
+  private final UserRepository userRepository;
+  private final PlafondRepository plafondRepository;
+  private final LoanApplicationRepository loanApplicationRepository;
 
-   /**
-    * ASSIGN PLAFOND KE USER Digunakan oleh BACKOFFICE untuk assign plafond baru ke user. 
-    * TIDAK BISA assign jika user masih ada pengajuan pinjaman yang belum selesai.
-    * Logic: 1. Validasi user dan plafond exist 2. Validasi tidak ada pinjaman aktif 3.
-    * Nonaktifkan plafond lama yang masih aktif (jika ada) 4. Create user plafond baru dengan
-    * status aktif
-    *
-    * @param request AssignUserPlafondRequest dengan userId, plafondId, dan maxAmount
-    * @return UserPlafondResponse dengan data plafond yang baru di-assign
-    */
-   @Transactional
-   public UserPlafondResponse assignPlafondToUser(AssignUserPlafondRequest request) {
-      // 1. Validasi user exist
-      User user = userRepository
+  /**
+   * ASSIGN PLAFOND KE USER Digunakan oleh BACKOFFICE untuk assign plafond baru ke user. TIDAK BISA
+   * assign jika user masih ada pengajuan pinjaman yang belum selesai. Logic: 1. Validasi user dan
+   * plafond exist 2. Validasi tidak ada pinjaman aktif 3. Nonaktifkan plafond lama yang masih aktif
+   * (jika ada) 4. Create user plafond baru dengan status aktif
+   *
+   * @param request AssignUserPlafondRequest dengan userId, plafondId, dan maxAmount
+   * @return UserPlafondResponse dengan data plafond yang baru di-assign
+   */
+  @Transactional
+  public UserPlafondResponse assignPlafondToUser(AssignUserPlafondRequest request) {
+    // 1. Validasi user exist
+    User user =
+        userRepository
             .findById(request.getUserId())
             .orElseThrow(
-                  () -> new ResourceNotFoundException(
+                () ->
+                    new ResourceNotFoundException(
                         "User dengan ID " + request.getUserId() + " tidak ditemukan"));
 
-      // 2. Validasi tidak ada pinjaman yang sedang diproses
-      if (loanApplicationRepository.existsActiveApplicationByUser(user)) {
-         throw new BusinessException(
-               "Tidak dapat assign plafond baru. User masih memiliki pengajuan pinjaman yang belum selesai diproses");
-      }
+    // 2. Validasi tidak ada pinjaman yang sedang diproses
+    if (loanApplicationRepository.existsActiveApplicationByUser(user)) {
+      throw new BusinessException(
+          "Tidak dapat assign plafond baru. User masih memiliki pengajuan pinjaman yang belum selesai diproses");
+    }
 
-      // 3. Validasi plafond exist
-      Plafond plafond = plafondRepository
+    // 3. Validasi plafond exist
+    Plafond plafond =
+        plafondRepository
             .findById(request.getPlafondId())
             .orElseThrow(
-                  () -> new ResourceNotFoundException(
+                () ->
+                    new ResourceNotFoundException(
                         "Plafond dengan ID " + request.getPlafondId() + " tidak ditemukan"));
 
-      // 4. Validasi maxAmount tidak melebihi max amount dari plafond
-      if (request.getMaxAmount().compareTo(plafond.getMaxAmount()) > 0) {
-         throw new BusinessException(
-               "Max amount yang diberikan ("
-                     + request.getMaxAmount()
-                     + ") melebihi max amount plafond "
-                     + plafond.getName()
-                     + " ("
-                     + plafond.getMaxAmount()
-                     + ")");
-      }
+    // 4. Validasi maxAmount tidak melebihi max amount dari plafond
+    if (request.getMaxAmount().compareTo(plafond.getMaxAmount()) > 0) {
+      throw new BusinessException(
+          "Max amount yang diberikan ("
+              + request.getMaxAmount()
+              + ") melebihi max amount plafond "
+              + plafond.getName()
+              + " ("
+              + plafond.getMaxAmount()
+              + ")");
+    }
 
-      // 5. Nonaktifkan plafond lama yang masih aktif (jika ada)
-      userPlafondRepository
-            .findByUserAndIsActive(user, true)
-            .ifPresent(
-                  oldPlafond -> {
-                     oldPlafond.setIsActive(false);
-                     userPlafondRepository.save(oldPlafond);
-                  });
+    // 5. Nonaktifkan plafond lama yang masih aktif (jika ada)
+    userPlafondRepository
+        .findByUserAndIsActive(user, true)
+        .ifPresent(
+            oldPlafond -> {
+              oldPlafond.setIsActive(false);
+              userPlafondRepository.save(oldPlafond);
+            });
 
-      // 5. Create user plafond baru
-      UserPlafond userPlafond = UserPlafond.builder()
+    // 5. Create user plafond baru
+    UserPlafond userPlafond =
+        UserPlafond.builder()
             .user(user)
             .plafond(plafond)
             .maxAmount(request.getMaxAmount())
@@ -89,67 +91,70 @@ public class UserPlafondService {
             .isActive(true)
             .build();
 
-      UserPlafond savedPlafond = userPlafondRepository.save(userPlafond);
-      return toResponse(savedPlafond);
-   }
+    UserPlafond savedPlafond = userPlafondRepository.save(userPlafond);
+    return toResponse(savedPlafond);
+  }
 
-   /**
-    * GET ACTIVE USER PLAFOND Mendapatkan plafond aktif dari user. User hanya bisa
-    * memiliki 1
-    * plafond aktif pada satu waktu.
-    *
-    * @param userId ID user
-    * @return UserPlafondResponse
-    */
-   @Transactional(readOnly = true)
-   public UserPlafondResponse getActiveUserPlafond(Long userId) {
-      User user = userRepository
+  /**
+   * GET ACTIVE USER PLAFOND Mendapatkan plafond aktif dari user. User hanya bisa memiliki 1 plafond
+   * aktif pada satu waktu.
+   *
+   * @param userId ID user
+   * @return UserPlafondResponse
+   */
+  @Transactional(readOnly = true)
+  public UserPlafondResponse getActiveUserPlafond(Long userId) {
+    User user =
+        userRepository
             .findById(userId)
             .orElseThrow(
-                  () -> new ResourceNotFoundException("User dengan ID " + userId + " tidak ditemukan"));
+                () ->
+                    new ResourceNotFoundException("User dengan ID " + userId + " tidak ditemukan"));
 
-      UserPlafond userPlafond = userPlafondRepository
+    UserPlafond userPlafond =
+        userPlafondRepository
             .findByUserAndIsActive(user, true)
             .orElseThrow(
-                  () -> new ResourceNotFoundException(
+                () ->
+                    new ResourceNotFoundException(
                         "User tidak memiliki plafond aktif. Silakan assign plafond terlebih dahulu"));
 
-      return toResponse(userPlafond);
-   }
+    return toResponse(userPlafond);
+  }
 
-   /**
-    * GET USER PLAFOND HISTORY Mendapatkan SEMUA riwayat plafond dari user (active + inactive).
-    * Diurutkan dari yang terbaru.
-    *
-    * @param userId ID user
-    * @return List of UserPlafondResponse
-    */
-   @Transactional(readOnly = true)
-   public java.util.List<UserPlafondResponse> getUserPlafondHistory(Long userId) {
-      User user = userRepository
+  /**
+   * GET USER PLAFOND HISTORY Mendapatkan SEMUA riwayat plafond dari user (active + inactive).
+   * Diurutkan dari yang terbaru.
+   *
+   * @param userId ID user
+   * @return List of UserPlafondResponse
+   */
+  @Transactional(readOnly = true)
+  public java.util.List<UserPlafondResponse> getUserPlafondHistory(Long userId) {
+    User user =
+        userRepository
             .findById(userId)
             .orElseThrow(
-                  () -> new ResourceNotFoundException("User dengan ID " + userId + " tidak ditemukan"));
+                () ->
+                    new ResourceNotFoundException("User dengan ID " + userId + " tidak ditemukan"));
 
-      return userPlafondRepository
-            .findAllByUserOrderByAssignedAtDesc(user)
-            .stream()
-            .map(this::toResponse)
-            .toList();
-   }
+    return userPlafondRepository.findAllByUserOrderByAssignedAtDesc(user).stream()
+        .map(this::toResponse)
+        .toList();
+  }
 
-   /** Mapper Entity to Response DTO. */
-   private UserPlafondResponse toResponse(UserPlafond userPlafond) {
-      return UserPlafondResponse.builder()
-            .id(userPlafond.getId())
-            .userId(userPlafond.getUser().getId())
-            .username(userPlafond.getUser().getUsername())
-            .plafondId(userPlafond.getPlafond().getId())
-            .plafondName(userPlafond.getPlafond().getName())
-            .maxAmount(userPlafond.getMaxAmount())
-            .remainingAmount(userPlafond.getRemainingAmount())
-            .isActive(userPlafond.getIsActive())
-            .assignedAt(userPlafond.getAssignedAt())
-            .build();
-   }
+  /** Mapper Entity to Response DTO. */
+  private UserPlafondResponse toResponse(UserPlafond userPlafond) {
+    return UserPlafondResponse.builder()
+        .id(userPlafond.getId())
+        .userId(userPlafond.getUser().getId())
+        .username(userPlafond.getUser().getUsername())
+        .plafondId(userPlafond.getPlafond().getId())
+        .plafondName(userPlafond.getPlafond().getName())
+        .maxAmount(userPlafond.getMaxAmount())
+        .remainingAmount(userPlafond.getRemainingAmount())
+        .isActive(userPlafond.getIsActive())
+        .assignedAt(userPlafond.getAssignedAt())
+        .build();
+  }
 }

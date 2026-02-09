@@ -93,7 +93,7 @@ public class BranchController {
    * @param id Branch ID yang mau di-delete
    * @return Success message
    */
-  //yang bisa deleteBranch adalah SUPERADMIN
+  // yang bisa deleteBranch adalah SUPERADMIN
   @PreAuthorize("hasAuthority('BRANCH:DELETE')")
   @DeleteMapping("/{id}")
   public ResponseEntity<ApiResponse<Void>> deleteBranch(@PathVariable Long id) {

@@ -34,16 +34,12 @@ public class RoleService {
     this.userRepository = userRepository;
   }
 
-  /**
-   * Mendapatkan semua Role yang ada di sistem (auto exclude deleted via @Where)
-   */
+  /** Mendapatkan semua Role yang ada di sistem (auto exclude deleted via @Where) */
   public List<RoleResponse> getAllRoles() {
     return roleRepository.findAll().stream().map(this::toResponse).toList();
   }
 
-  /**
-   * Menambahkan Role baru ke dalam sistem
-   */
+  /** Menambahkan Role baru ke dalam sistem */
   @Transactional
   public RoleResponse createRole(RoleRequest request) {
     if (roleRepository.existsByRoleName(request.getRoleName())) {
@@ -58,43 +54,47 @@ public class RoleService {
       permissions = new HashSet<>(permissionRepository.findAllById(request.getPermissionIds()));
     }
 
-    Role role = Role.builder()
-        .roleName(request.getRoleName())
-        .roleDescription(request.getRoleDescription())
-        .permissions(permissions)
-        .build();
+    Role role =
+        Role.builder()
+            .roleName(request.getRoleName())
+            .roleDescription(request.getRoleDescription())
+            .permissions(permissions)
+            .build();
     return toResponse(roleRepository.save(role));
   }
 
-  /**
-   * Mengupdate deskripsi dan hak akses data role
-   */
+  /** Mengupdate deskripsi dan hak akses data role */
   @Transactional
   public RoleResponse updateRole(Long id, RoleUpdateRequest request) {
-    Role role = roleRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Role dengan id " + id + " tidak ditemukan"));
+    Role role =
+        roleRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Role dengan id " + id + " tidak ditemukan"));
 
     role.setRoleDescription(request.getRoleDescription());
 
     if (request.getPermissionIds() != null) {
-      Set<Permission> permissions = new HashSet<>(permissionRepository.findAllById(request.getPermissionIds()));
+      Set<Permission> permissions =
+          new HashSet<>(permissionRepository.findAllById(request.getPermissionIds()));
       role.setPermissions(permissions);
     }
 
     return toResponse(roleRepository.save(role));
   }
 
-  /**
-   * Soft delete - menandai role sebagai deleted tanpa menghapus dari database
-   */
+  /** Soft delete - menandai role sebagai deleted tanpa menghapus dari database */
   @Transactional
   public void deleteRole(Long id) {
-    Role role = roleRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Maaf, tidak ada data role dengan id " + id));
+    Role role =
+        roleRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Maaf, tidak ada data role dengan id " + id));
 
     // VALIDASI SAFE-DELETE 1: Proteksi Role Sistem (Immutable)
-    if (role.getRoleName().equalsIgnoreCase("SUPERADMIN") || 
-        role.getRoleName().equalsIgnoreCase("CUSTOMER")) {
+    if (role.getRoleName().equalsIgnoreCase("SUPERADMIN")
+        || role.getRoleName().equalsIgnoreCase("CUSTOMER")) {
       throw new BusinessException(
           "Role '" + role.getRoleName() + "' adalah Role Sistem dan tidak boleh dihapus.");
     }
@@ -102,22 +102,23 @@ public class RoleService {
     // VALIDASI SAFE-DELETE 2: Cek apakah masih ada user yang menggunakan role ini
     if (userRepository.existsByRolesId(id)) {
       throw new BusinessException(
-          "Role '" + role.getRoleName() + "' tidak bisa dihapus karena masih digunakan oleh beberapa pengguna.");
+          "Role '"
+              + role.getRoleName()
+              + "' tidak bisa dihapus karena masih digunakan oleh beberapa pengguna.");
     }
 
     role.softDelete();
     roleRepository.save(role);
   }
 
-  /**
-   * Method helper untuk membantu mapping Entity ke DTO
-   */
+  /** Method helper untuk membantu mapping Entity ke DTO */
   private RoleResponse toResponse(Role role) {
     Set<String> permissionNames = new HashSet<>();
     if (role.getPermissions() != null) {
-      permissionNames = role.getPermissions().stream()
-          .map(Permission::getPermissionName)
-          .collect(Collectors.toSet());
+      permissionNames =
+          role.getPermissions().stream()
+              .map(Permission::getPermissionName)
+              .collect(Collectors.toSet());
     }
 
     return RoleResponse.builder()

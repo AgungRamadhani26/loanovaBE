@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.*;
 /**
  * PLAFOND CONTROLLER REST API untuk manajemen plafon pinjaman.
  *
- * <p>
- * Base URL: /api/plafonds
+ * <p>Base URL: /api/plafonds
  *
- * <p>
- * Otorisasi: Hanya dapat diakses oleh SUPERADMIN.
+ * <p>Otorisasi: Hanya dapat diakses oleh SUPERADMIN.
  */
 @RestController
 @RequestMapping("/api/plafonds")
@@ -29,8 +27,7 @@ public class PlafondController {
   private final PlafondService plafondService;
 
   /**
-   * GET ALL PLAFONDS (PUBLIC) Endpoint publik untuk melihat daftar plafond tanpa
-   * perlu login.
+   * GET ALL PLAFONDS (PUBLIC) Endpoint publik untuk melihat daftar plafond tanpa perlu login.
    * Berguna untuk landing page atau halaman informasi produk.
    */
   // Plafond Public
@@ -69,8 +66,7 @@ public class PlafondController {
   }
 
   /**
-   * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa
-   * menghilangkannya dari
+   * MENGHAPUS PLAFOND (SOFT DELETE) Menandai data sebagai terhapus tanpa menghilangkannya dari
    * database.
    */
   // Yang bisa akses deletePlafond hanya SUPERADMIN

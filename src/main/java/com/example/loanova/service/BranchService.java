@@ -11,7 +11,6 @@ import com.example.loanova.repository.LoanApplicationRepository;
 import com.example.loanova.repository.UserRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BranchService {
@@ -155,13 +154,17 @@ public class BranchService {
     // VALIDASI SAFE-DELETE 1: Cek apakah masih ada staff aktif di cabang ini
     if (userRepository.existsByBranchIdAndIsActiveTrue(id)) {
       throw new BusinessException(
-          "Cabang '" + branch.getBranchName() + "' tidak bisa dihapus karena masih memiliki staff/pengguna aktif.");
+          "Cabang '"
+              + branch.getBranchName()
+              + "' tidak bisa dihapus karena masih memiliki staff/pengguna aktif.");
     }
 
     // VALIDASI SAFE-DELETE 2: Cek apakah masih ada pinjaman berjalan (non-final status)
     if (loanApplicationRepository.existsByBranchIdAndStatusNotIn(id)) {
       throw new BusinessException(
-          "Cabang '" + branch.getBranchName() + "' tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
+          "Cabang '"
+              + branch.getBranchName()
+              + "' tidak bisa dihapus karena masih memiliki pengajuan pinjaman yang sedang diproses.");
     }
 
     branch.softDelete();

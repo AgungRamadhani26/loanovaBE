@@ -6,12 +6,12 @@ import lombok.Data;
 @Data
 public class PushNotificationRequest {
 
-    @NotBlank(message = "Username tidak boleh kosong")
-    private String username;
+  @NotBlank(message = "Username tidak boleh kosong")
+  private String username;
 
-    @NotBlank(message = "Title tidak boleh kosong")
-    private String title;
+  @NotBlank(message = "Title tidak boleh kosong")
+  private String title;
 
-    @NotBlank(message = "Message tidak boleh kosong")
-    private String message;
+  @NotBlank(message = "Message tidak boleh kosong")
+  private String message;
 }

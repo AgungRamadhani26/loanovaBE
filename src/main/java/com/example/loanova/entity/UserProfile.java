@@ -6,10 +6,8 @@ import java.time.LocalDateTime;
 import lombok.*;
 
 /**
- * USER PROFILE ENTITY Represents user profile information including personal
- * data and document
- * photos. This entity doesn't use soft delete since user profiles should never
- * be deleted, only
+ * USER PROFILE ENTITY Represents user profile information including personal data and document
+ * photos. This entity doesn't use soft delete since user profiles should never be deleted, only
  * updated for data accuracy and compliance purposes.
  */
 @Entity

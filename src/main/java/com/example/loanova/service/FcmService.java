@@ -21,14 +21,10 @@ public class FcmService {
     }
 
     try {
-      Notification notification = Notification.builder()
-          .setTitle(title)
-          .setBody(body)
-          .build();
+      Notification notification = Notification.builder().setTitle(title).setBody(body).build();
 
-      Message.Builder messageBuilder = Message.builder()
-          .setToken(token)
-          .setNotification(notification);
+      Message.Builder messageBuilder =
+          Message.builder().setToken(token).setNotification(notification);
 
       // Add data payload with loanApplicationId if present
       if (loanApplicationId != null) {
@@ -41,7 +37,11 @@ public class FcmService {
       String response = FirebaseMessaging.getInstance().send(message);
       log.info("Successfully sent message: {}", response);
     } catch (Exception e) {
-      log.error("Failed to send FCM message. Title: {}, Token: {}, Error: {}", title, token, e.getMessage());
+      log.error(
+          "Failed to send FCM message. Title: {}, Token: {}, Error: {}",
+          title,
+          token,
+          e.getMessage());
       e.printStackTrace(); // Print full stack trace to console
     }
   }

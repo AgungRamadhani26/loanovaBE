@@ -8,10 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * LOAN APPLICATION RESPONSE DTO untuk mengirimkan data loan application ke
- * client.
- */
+/** LOAN APPLICATION RESPONSE DTO untuk mengirimkan data loan application ke client. */
 @Data
 @Builder
 @NoArgsConstructor

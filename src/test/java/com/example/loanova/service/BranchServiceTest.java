@@ -41,12 +41,8 @@ class BranchServiceTest {
     request.setBranchName("Branch 2");
     request.setAddress("Addr 2");
 
-    Branch existingBranch = Branch.builder()
-        .id(id)
-        .branchCode("B001")
-        .branchName("Branch 1")
-        .address("Addr 1")
-        .build();
+    Branch existingBranch =
+        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").address("Addr 1").build();
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     // Mock checks return false (no duplicates)
@@ -54,8 +50,9 @@ class BranchServiceTest {
     when(branchRepository.existsByBranchCodeAnyStatus("B002")).thenReturn(false);
     when(branchRepository.existsByBranchName("Branch 2")).thenReturn(false);
     when(branchRepository.existsByBranchNameAnyStatus("Branch 2")).thenReturn(false);
-    
-    when(branchRepository.save(any(Branch.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+    when(branchRepository.save(any(Branch.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     // Act
     BranchResponse response = branchService.updateBranch(id, request);
@@ -73,7 +70,8 @@ class BranchServiceTest {
     request.setBranchCode("B002"); // Duplicate
     request.setBranchName("Branch 1");
 
-    Branch existingBranch = Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch =
+        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchCode("B002")).thenReturn(true);
@@ -88,14 +86,17 @@ class BranchServiceTest {
     request.setBranchCode("B002"); // Duplicate deleted
     request.setBranchName("Branch 1");
 
-    Branch existingBranch = Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch =
+        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchCode("B002")).thenReturn(false); // Not active
-    when(branchRepository.existsByBranchCodeAnyStatus("B002")).thenReturn(true); // But exists in history
+    when(branchRepository.existsByBranchCodeAnyStatus("B002"))
+        .thenReturn(true); // But exists in history
 
-    DuplicateResourceException ex = assertThrows(DuplicateResourceException.class, 
-        () -> branchService.updateBranch(id, request));
+    DuplicateResourceException ex =
+        assertThrows(
+            DuplicateResourceException.class, () -> branchService.updateBranch(id, request));
     assertTrue(ex.getMessage().contains("sudah dihapus"));
   }
 
@@ -103,10 +104,11 @@ class BranchServiceTest {
   void updateBranch_Fail_WhenDuplicateActiveName() {
     Long id = 1L;
     BranchRequest request = new BranchRequest();
-    request.setBranchCode("B001"); 
+    request.setBranchCode("B001");
     request.setBranchName("Branch 2"); // Duplicate Name
 
-    Branch existingBranch = Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch =
+        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     // Code didn't change, so no code check
@@ -122,14 +124,16 @@ class BranchServiceTest {
     request.setBranchCode("B001");
     request.setBranchName("Branch 2"); // Duplicate deleted Name
 
-    Branch existingBranch = Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch =
+        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchName("Branch 2")).thenReturn(false);
     when(branchRepository.existsByBranchNameAnyStatus("Branch 2")).thenReturn(true);
 
-    DuplicateResourceException ex = assertThrows(DuplicateResourceException.class, 
-        () -> branchService.updateBranch(id, request));
+    DuplicateResourceException ex =
+        assertThrows(
+            DuplicateResourceException.class, () -> branchService.updateBranch(id, request));
     assertTrue(ex.getMessage().contains("sudah dihapus"));
   }
 }
