@@ -1,0 +1,51 @@
+services:
+  backend:
+    container_name: loanova_backend
+    # Ganti ${DOCKER_USERNAME} dengan username Docker Hub Anda di file .env atau langsung di sini
+    image: ${DOCKER_USERNAME}/loanova-backend:latest
+    ports:
+      - "9091:9091"
+    depends_on:
+      - redis
+      # - sqlserver # Uncomment jika menggunakan container SQL Server di dalam compose ini
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=loanova_db;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=YourStrongPassword123 # GANTI INI
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      - SERVER_PORT=9091
+    restart: always
+    networks:
+      - loanova-network
+
+  redis:
+    image: redis:latest
+    container_name: loanova_redis
+    ports:
+      - "6380:6379"
+    restart: always
+    networks:
+      - loanova-network
+
+  # Uncomment service ini jika Anda ingin menjalankan SQL Server di dalam Docker Container ini
+  # sqlserver:
+  #   image: mcr.microsoft.com/mssql/server:2022-latest
+  #   container_name: loanova_sqlserver
+  #   environment:
+  #     - ACCEPT_EULA=Y
+  #     - MSSQL_SA_PASSWORD=YourStrongPassword123 # GANTI INI
+  #   ports:
+  #     - "1433:1433"
+  #   volumes:
+  #     - sqlserver_data:/var/opt/mssql
+  #   networks:
+  #     - loanova-network
+  #   restart: always
+
+networks:
+  loanova-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
