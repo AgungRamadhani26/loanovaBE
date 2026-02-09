@@ -32,6 +32,17 @@ class BranchServiceTest {
     branchService = new BranchService(branchRepository, userRepository, loanApplicationRepository);
   }
 
+  /**
+   * Helper method untuk membuat Branch dengan ID. Lombok @Builder tidak include field dari parent
+   * class (BaseEntity), jadi kita perlu set ID secara manual menggunakan setter.
+   */
+  private Branch createBranchWithId(Long id, String branchCode, String branchName, String address) {
+    Branch branch =
+        Branch.builder().branchCode(branchCode).branchName(branchName).address(address).build();
+    branch.setId(id); // Set ID menggunakan setter dari BaseEntity
+    return branch;
+  }
+
   @Test
   void updateBranch_Success_WhenNoDuplicates() {
     // Arrange
@@ -41,8 +52,8 @@ class BranchServiceTest {
     request.setBranchName("Branch 2");
     request.setAddress("Addr 2");
 
-    Branch existingBranch =
-        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").address("Addr 1").build();
+    // Gunakan helper method untuk membuat Branch dengan ID
+    Branch existingBranch = createBranchWithId(id, "B001", "Branch 1", "Addr 1");
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     // Mock checks return false (no duplicates)
@@ -70,8 +81,7 @@ class BranchServiceTest {
     request.setBranchCode("B002"); // Duplicate
     request.setBranchName("Branch 1");
 
-    Branch existingBranch =
-        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch = createBranchWithId(id, "B001", "Branch 1", null);
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchCode("B002")).thenReturn(true);
@@ -86,8 +96,7 @@ class BranchServiceTest {
     request.setBranchCode("B002"); // Duplicate deleted
     request.setBranchName("Branch 1");
 
-    Branch existingBranch =
-        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch = createBranchWithId(id, "B001", "Branch 1", null);
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchCode("B002")).thenReturn(false); // Not active
@@ -107,8 +116,7 @@ class BranchServiceTest {
     request.setBranchCode("B001");
     request.setBranchName("Branch 2"); // Duplicate Name
 
-    Branch existingBranch =
-        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch = createBranchWithId(id, "B001", "Branch 1", null);
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     // Code didn't change, so no code check
@@ -124,8 +132,7 @@ class BranchServiceTest {
     request.setBranchCode("B001");
     request.setBranchName("Branch 2"); // Duplicate deleted Name
 
-    Branch existingBranch =
-        Branch.builder().id(id).branchCode("B001").branchName("Branch 1").build();
+    Branch existingBranch = createBranchWithId(id, "B001", "Branch 1", null);
 
     when(branchRepository.findById(id)).thenReturn(Optional.of(existingBranch));
     when(branchRepository.existsByBranchName("Branch 2")).thenReturn(false);
