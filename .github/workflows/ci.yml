@@ -50,6 +50,11 @@ jobs:
     - name: Run Spotless Check
       run: ./mvnw spotless:check
       
-    # Step 5: Build - Compile project (skip tests untuk speed)
+    # Step 5: Build - Compile project
     - name: Build with Maven
       run: ./mvnw compile -DskipTests
+      
+    # Step 6: Unit Test - Menjalankan semua unit test
+    # Test akan berjalan dan menghasilkan report di target/surefire-reports
+    - name: Run Unit Tests
+      run: ./mvnw test
