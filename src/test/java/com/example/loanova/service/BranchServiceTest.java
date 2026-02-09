@@ -33,8 +33,8 @@ class BranchServiceTest {
   }
 
   /**
-   * Ini Helper method untuk membuat Branch dengan ID. Lombok @Builder tidak include field dari parent
-   * class (BaseEntity), jadi kita perlu set ID secara manual menggunakan setter.
+   * Ini Helper method untuk membuat Branch dengan ID. Lombok @Builder tidak include field dari
+   * parent class (BaseEntity), jadi kita perlu set ID secara manual menggunakan setter.
    */
   private Branch createBranchWithId(Long id, String branchCode, String branchName, String address) {
     Branch branch =
