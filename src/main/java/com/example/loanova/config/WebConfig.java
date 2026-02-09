@@ -23,4 +23,20 @@ public class WebConfig implements WebMvcConfigurer {
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry.addResourceHandler("/uploads/**").addResourceLocations("file:" + uploadDir + "/");
   }
+
+  /** Konfigurasi Global CORS untuk mengizinkan frontend mengakses API */
+  @Override
+  public void addCorsMappings(
+      org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
+    registry
+        .addMapping("/**") // Berlaku untuk semua endpoint
+        .allowedOrigins(
+            "http://localhost:4200", // Frontend Local Development
+            "https://loanova-fe.vercel.app" // Frontend Production
+            )
+        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Method yang diizinkan
+        .allowedHeaders("*") // Header yang diizinkan
+        .allowCredentials(true) // Izinkan cookies/auth headers
+        .maxAge(3600); // Cache preflight request selama 1 jam
+  }
 }

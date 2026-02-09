@@ -60,6 +60,26 @@ public class SecurityConfig {
         // CSRF protection tidak diperlukan untuk REST API dengan JWT
         .csrf(csrf -> csrf.disable())
 
+        // Cek Konfigurasi CORS dari WebConfig
+        .cors(org.springframework.security.config.Customizer.withDefaults())
+
+        // HTTP SECURITY HEADERS (OWASP RECOMMENDATIONS)
+        .headers(
+            headers ->
+                headers
+                    // Mencegah Clickjacking (Frame hanya boleh dari origin yang sama)
+                    .frameOptions(frame -> frame.deny())
+                    // Mencegah MIME-sniffing (X-Content-Type-Options: nosniff)
+                    // Default Spring Security sudah mengaktifkan ini, jadi kita biarkan default
+                    // .contentTypeOptions(Customizer.withDefaults())
+                    .xssProtection(
+                        xss ->
+                            xss.headerValue(
+                                org.springframework.security.web.header.writers
+                                    .XXssProtectionHeaderWriter.HeaderValue
+                                    .ENABLED_MODE_BLOCK)) // XSS Protection
+            )
+
         // AUTHORIZATION RULES - Define endpoint mana yang public/protected
         .authorizeHttpRequests(
             auth ->
