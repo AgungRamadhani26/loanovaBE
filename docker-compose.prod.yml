@@ -1,47 +1,90 @@
+# =============================================================================
+# DOCKER COMPOSE - PRODUCTION (VPS)
+# =============================================================================
+# File ini digunakan di VPS untuk menjalankan semua service yang dibutuhkan.
+# 
+# Pertama kali:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Update backend saja:
+#   docker compose -f docker-compose.prod.yml pull backend
+#   docker compose -f docker-compose.prod.yml up -d backend
+# =============================================================================
+
 services:
+  # ---- BACKEND APPLICATION ----
   backend:
-    container_name: loanova_backend
-    # Ganti ${DOCKER_USERNAME} dengan username Docker Hub Anda di file .env atau langsung di sini
+    container_name: spring-app
     image: ${DOCKER_USERNAME}/loanova-backend:latest
     ports:
       - "9091:9091"
     depends_on:
-      - redis
-      # - sqlserver # Uncomment jika menggunakan container SQL Server di dalam compose ini
+      sqlserver:
+        condition: service_started
+      redis:
+        condition: service_started
     environment:
+      # Database
       - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=loanova_db;encrypt=true;trustServerCertificate=true
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=YourStrongPassword123 # GANTI INI
+      - SPRING_DATASOURCE_PASSWORD=SHOsu2611@
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
+      # JPA
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      # Redis
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_CACHE_TYPE=redis
+      # Server
       - SERVER_PORT=9091
+      # JWT
+      - JWT_SECRET=loanovaSecretKeyForJWTAuthenticationMustBeLongEnoughForHS256Algorithm
+      # Frontend URL
+      - APP_FRONTEND_URL=http://136.113.170.61:4200
+    volumes:
+      - backend_uploads:/app/uploads
     restart: always
     networks:
       - loanova-network
 
+  # ---- SQL SERVER ----
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SHOsu2611@
+      - MSSQL_PID=developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: always
+    networks:
+      - loanova-network
+
+  # ---- REDIS ----
   redis:
     image: redis:latest
-    container_name: loanova_redis
+    container_name: redis
     ports:
-      - "6380:6379"
+      - "6379:6379"
+    command: redis-server --loglevel warning
     restart: always
     networks:
       - loanova-network
 
-  # Uncomment service ini jika Anda ingin menjalankan SQL Server di dalam Docker Container ini
-  # sqlserver:
-  #   image: mcr.microsoft.com/mssql/server:2022-latest
-  #   container_name: loanova_sqlserver
-  #   environment:
-  #     - ACCEPT_EULA=Y
-  #     - MSSQL_SA_PASSWORD=YourStrongPassword123 # GANTI INI
-  #   ports:
-  #     - "1433:1433"
-  #   volumes:
-  #     - sqlserver_data:/var/opt/mssql
-  #   networks:
-  #     - loanova-network
-  #   restart: always
+  # ---- REDIS INSIGHT (Monitoring Tool) ----
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: loanova_redis_insight
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    restart: always
+    networks:
+      - loanova-network
 
 networks:
   loanova-network:
@@ -49,3 +92,4 @@ networks:
 
 volumes:
   sqlserver_data:
+  backend_uploads:
