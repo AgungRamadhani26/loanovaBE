@@ -54,7 +54,7 @@ services:
       # File Upload
       - FILE_UPLOAD_DIR=uploads
     volumes:
-      - backend_uploads:/app/uploads
+      - ./uploads:/app/uploads
     restart: always
     networks:
       - loanova-network
