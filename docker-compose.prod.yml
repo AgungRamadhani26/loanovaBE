@@ -31,16 +31,28 @@ services:
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.microsoft.sqlserver.jdbc.SQLServerDriver
       # JPA
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
       # Redis
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_CACHE_TYPE=redis
       # Server
       - SERVER_PORT=9091
-      # JWT
+      # JWT (custom properties — gunakan underscore)
       - JWT_SECRET=loanovaSecretKeyForJWTAuthenticationMustBeLongEnoughForHS256Algorithm
+      - JWT_ACCESS_TOKEN_EXPIRATION=900000
+      - JWT_REFRESH_TOKEN_EXPIRATION=604800000
       # Frontend URL
       - APP_FRONTEND_URL=http://136.113.170.61:4200
+      # Mail
+      - SPRING_MAIL_HOST=smtp.gmail.com
+      - SPRING_MAIL_PORT=587
+      - SPRING_MAIL_USERNAME=agungramadhani2409@gmail.com
+      - SPRING_MAIL_PASSWORD=xhtptisbpdanviuh
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH=true
+      - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
+      # File Upload
+      - FILE_UPLOAD_DIR=uploads
     volumes:
       - backend_uploads:/app/uploads
     restart: always
