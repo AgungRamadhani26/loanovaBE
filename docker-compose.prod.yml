@@ -35,7 +35,6 @@ services:
       # Redis
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
-      - APP_FRONTEND_URL=${APP_FRONTEND_URL:-https://loanova-fe.vercel.app} # Default ke Vercel jika env kosong
       - SPRING_CACHE_TYPE=redis
       # Server
       - SERVER_PORT=9091
@@ -43,7 +42,8 @@ services:
       - JWT_SECRET=loanovaSecretKeyForJWTAuthenticationMustBeLongEnoughForHS256Algorithm
       - JWT_ACCESS_TOKEN_EXPIRATION=900000
       - JWT_REFRESH_TOKEN_EXPIRATION=604800000
-
+  # Frontend URL
+      - APP_FRONTEND_URL=https://loanova-fe.vercel.app
       # Mail
       - SPRING_MAIL_HOST=smtp.gmail.com
       - SPRING_MAIL_PORT=587
