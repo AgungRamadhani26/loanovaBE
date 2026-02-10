@@ -71,7 +71,7 @@ public class AuthService implements UserDetailsService {
   private final AuthenticationManager authenticationManager;
   private final PasswordEncoder passwordEncoder;
 
-  @Value("${app.frontend.url:http://localhost:4200}")
+  @Value("${app.frontend.url:https://loanova-fe.vercel.app}")
   private String frontendUrl;
 
   /**
