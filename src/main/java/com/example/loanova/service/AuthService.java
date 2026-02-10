@@ -468,7 +468,7 @@ public class AuthService implements UserDetailsService {
             .user(user)
             .isUsed(false)
             .expiratedAt(LocalDateTime.now().plusMinutes(5)) // kadaluarsa 5 menit
-            // createdAt ditangani oleh @PrePersist
+            // createdAt ditangani @PrePersist
             .build();
 
     passwordResetTokenRepository.save(passwordResetToken);
