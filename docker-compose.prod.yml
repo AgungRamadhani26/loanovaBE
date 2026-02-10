@@ -17,7 +17,7 @@ services:
     container_name: spring-app
     image: ${DOCKER_USERNAME}/loanova-backend:latest
     ports:
-      - "9091:9091"
+      - "80:9091"
     depends_on:
       sqlserver:
         condition: service_started
