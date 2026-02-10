@@ -62,13 +62,13 @@ public class PlafondSeeder implements CommandLineRunner {
 
     // If not found by exact name, try finding by uppercase name (to handle legacy data)
     if (existingPlafond.isEmpty()) {
-       existingPlafond = plafondRepository.findByName(data.name.toUpperCase());
+      existingPlafond = plafondRepository.findByName(data.name.toUpperCase());
     }
 
     if (existingPlafond.isPresent()) {
       Plafond plafond = existingPlafond.get();
       log.info("Updating existing Plafond: {}", plafond.getName());
-      
+
       // Update fields
       plafond.setName(data.name); // Normalize name to "Bronze", "Silver", etc.
       plafond.setDescription(data.description);
@@ -76,7 +76,7 @@ public class PlafondSeeder implements CommandLineRunner {
       plafond.setInterestRate(data.interestRate);
       plafond.setTenorMin(data.tenorMin);
       plafond.setTenorMax(data.tenorMax);
-      
+
       plafondRepository.save(plafond);
     } else {
       log.info("Creating new Plafond: {}", data.name);
