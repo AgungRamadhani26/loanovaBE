@@ -154,7 +154,10 @@ public class DashboardService {
 
     Map<String, Long> plafondCounts =
         activePlafonds.stream()
-            .filter(up -> up.getPlafond() != null && up.getPlafond().getName() != null) // Filter robust null
+            .filter(
+                up ->
+                    up.getPlafond() != null
+                        && up.getPlafond().getName() != null) // Filter robust null
             .collect(Collectors.groupingBy(up -> up.getPlafond().getName(), Collectors.counting()));
 
     return plafondCounts.entrySet().stream()
