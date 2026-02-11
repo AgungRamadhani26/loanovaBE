@@ -67,6 +67,7 @@ public class DashboardService {
     BigDecimal totalSubmissionAmount =
         applications.stream()
             .map(LoanApplication::getAmount)
+            .filter(amount -> amount != null) // Filter null amounts
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     List<LoanApplication> disbursedApps =
@@ -77,6 +78,7 @@ public class DashboardService {
     BigDecimal totalDisbursedAmount =
         disbursedApps.stream()
             .map(LoanApplication::getAmount)
+            .filter(amount -> amount != null) // Filter null amounts
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     // Calculate estimated income (principal + interest)
