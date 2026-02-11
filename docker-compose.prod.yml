@@ -53,8 +53,11 @@ services:
       - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true
       # File Upload
       - FILE_UPLOAD_DIR=uploads
+      # Firebase
+      - FIREBASE_CONFIG_PATH=/app/firebase-service-account.json
     volumes:
       - ./uploads:/app/uploads
+      - ./firebase-service-account.json:/app/firebase-service-account.json
     restart: always
     networks:
       - loanova-network

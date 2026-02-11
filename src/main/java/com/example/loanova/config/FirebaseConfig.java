@@ -17,13 +17,33 @@ public class FirebaseConfig {
   @PostConstruct
   public void initialize() {
     try {
-      ClassPathResource serviceAccount = new ClassPathResource("firebase-service-account.json");
-      if (!serviceAccount.exists()) {
-        log.warn("Firebase service account file not found. Push notifications will not work.");
-        return;
+      InputStream serviceAccountStream = null;
+      
+      // 1. Cek Environment Variable (untuk Production / Docker)
+      String externalPath = System.getenv("FIREBASE_CONFIG_PATH");
+      if (externalPath != null && !externalPath.isEmpty()) {
+        java.io.File file = new java.io.File(externalPath);
+        if (file.exists()) {
+          log.info("Loading Firebase config from external file: {}", externalPath);
+          serviceAccountStream = new java.io.FileInputStream(file);
+        } else {
+          log.warn("FIREBASE_CONFIG_PATH is set to {}, but file not found.", externalPath);
+        }
       }
 
-      InputStream serviceAccountStream = serviceAccount.getInputStream();
+      // 2. Fallback ke Classpath (untuk Local Dev)
+      if (serviceAccountStream == null) {
+        log.info("Loading Firebase config from classpath");
+        ClassPathResource serviceAccount = new ClassPathResource("firebase-service-account.json");
+        if (serviceAccount.exists()) {
+          serviceAccountStream = serviceAccount.getInputStream();
+        }
+      }
+
+      if (serviceAccountStream == null) {
+        log.warn("Firebase service account file not found in ENV or Classpath. Push notifications will not work.");
+        return;
+      }
 
       FirebaseOptions options =
           FirebaseOptions.builder()
