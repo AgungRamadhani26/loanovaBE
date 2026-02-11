@@ -18,7 +18,7 @@ public class FirebaseConfig {
   public void initialize() {
     try {
       InputStream serviceAccountStream = null;
-      
+
       // 1. Cek Environment Variable (untuk Production / Docker)
       String externalPath = System.getenv("FIREBASE_CONFIG_PATH");
       if (externalPath != null && !externalPath.isEmpty()) {
@@ -41,7 +41,8 @@ public class FirebaseConfig {
       }
 
       if (serviceAccountStream == null) {
-        log.warn("Firebase service account file not found in ENV or Classpath. Push notifications will not work.");
+        log.warn(
+            "Firebase service account file not found in ENV or Classpath. Push notifications will not work.");
         return;
       }
 
