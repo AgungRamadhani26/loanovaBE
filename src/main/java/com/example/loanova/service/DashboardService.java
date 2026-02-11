@@ -103,7 +103,7 @@ public class DashboardService {
 
   /**
    * Calculate total interest from disbursed loans Formula: amount * (interestRate/100) * tenor
-   * Note: interestRate is MONTHLY rate, tenor is in months
+   * Note: interestRate is MONTHLY rate, tenor in months
    */
   private BigDecimal calculateTotalInterest(List<LoanApplication> disbursedApps) {
     return disbursedApps.stream()
