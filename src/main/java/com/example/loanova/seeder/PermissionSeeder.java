@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@org.springframework.core.annotation.Order(2) // Run after RoleSeeder
 public class PermissionSeeder implements CommandLineRunner {
 
   private final PermissionRepository permissionRepository;
