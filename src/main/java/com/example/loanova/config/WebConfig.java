@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
   public void addCorsMappings(
       org.springframework.web.servlet.config.annotation.CorsRegistry registry) {
     registry
-        .addMapping("/**") // Berlaku untuk semua endpoint
+        .addMapping("/**") // Berlaku semua endpoint
         .allowedOrigins(
             "http://localhost:4200", // Frontend Local Development
             "https://loanova-fe.vercel.app" // Frontend Production
