@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@Order(3) // Run after SuperAdminSeeder
+@Order(3) // Run after SuperAdminSeeder (ke 3)
 public class PlafondSeeder implements CommandLineRunner {
 
   private final PlafondRepository plafondRepository;
