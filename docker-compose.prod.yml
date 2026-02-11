@@ -75,7 +75,7 @@ services:
     networks:
       - loanova-network
 
-  # ---- REDIS ----
+  # ----- REDIS -----
   redis:
     image: redis:latest
     container_name: redis
