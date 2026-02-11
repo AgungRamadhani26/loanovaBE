@@ -109,7 +109,7 @@ public class DashboardService {
     return disbursedApps.stream()
         .map(
             app -> {
-              BigDecimal amount = app.getAmount();
+              BigDecimal amount = app.getAmount() != null ? app.getAmount() : BigDecimal.ZERO;
               BigDecimal rate =
                   app.getInterestRateSnapshot() != null
                       ? app.getInterestRateSnapshot()
@@ -131,6 +131,7 @@ public class DashboardService {
 
     Map<String, Long> statusCounts =
         applications.stream()
+            .filter(app -> app.getStatus() != null) // Filter robust null
             .collect(Collectors.groupingBy(LoanApplication::getStatus, Collectors.counting()));
 
     return ALL_STATUSES.stream()
@@ -153,6 +154,7 @@ public class DashboardService {
 
     Map<String, Long> plafondCounts =
         activePlafonds.stream()
+            .filter(up -> up.getPlafond() != null && up.getPlafond().getName() != null) // Filter robust null
             .collect(Collectors.groupingBy(up -> up.getPlafond().getName(), Collectors.counting()));
 
     return plafondCounts.entrySet().stream()
