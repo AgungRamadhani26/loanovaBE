@@ -1,0 +1,1506 @@
+{
+    "info": {
+        "_postman_id": "loanova-api-collection",
+        "name": "Loanova API",
+        "description": "Dokumentasi lengkap REST API untuk aplikasi backend Loanova.\n\nBase URL: http://localhost:9091\n\nSemua response menggunakan format standar ApiResponse.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:9091",
+            "type": "string"
+        },
+        {
+            "key": "access_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "refresh_token",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{access_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "1. Authentication",
+            "description": "Base Path: /api/auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"customer01\",\n    \"email\": \"customer01@gmail.com\",\n    \"password\": \"Customer01*\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "POST /api/auth/register\n\nMendaftarkan customer baru. Public endpoint.\n\nFields:\n- username (String, required)\n- email (String, required)\n- password (String, required, harus strong password)"
+                    }
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.success && jsonData.data) {",
+                                    "    pm.collectionVariables.set('access_token', jsonData.data.accessToken);",
+                                    "    pm.collectionVariables.set('refresh_token', jsonData.data.refreshToken);",
+                                    "    console.log('Tokens saved successfully!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"Bima12345@\",\n    \"password\": \"Bima12345*\",\n    \"fcmToken\": \"\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "POST /api/auth/login\n\nLogin user (semua role). Token otomatis tersimpan ke collection variables.\n\nFields:\n- username (String, required)\n- password (String, required)\n- fcmToken (String, optional - untuk push notification)"
+                    }
+                },
+                {
+                    "name": "Firebase Google Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.success && jsonData.data) {",
+                                    "    pm.collectionVariables.set('access_token', jsonData.data.accessToken);",
+                                    "    pm.collectionVariables.set('refresh_token', jsonData.data.refreshToken);",
+                                    "    console.log('Tokens saved successfully!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"idToken\": \"YOUR_FIREBASE_ID_TOKEN\",\n    \"fcmToken\": \"YOUR_FCM_TOKEN\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/firebase-google",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "firebase-google"
+                            ]
+                        },
+                        "description": "POST /api/auth/firebase-google\n\nLogin menggunakan Google via Firebase Authentication.\n\nFields:\n- idToken (String, required - Firebase ID Token)\n- fcmToken (String, optional - untuk push notification)"
+                    }
+                },
+                {
+                    "name": "Refresh Token",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.success && jsonData.data) {",
+                                    "    pm.collectionVariables.set('access_token', jsonData.data.accessToken);",
+                                    "    console.log('Access token refreshed!');",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"refreshToken\": \"{{refresh_token}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/refresh",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "refresh"
+                            ]
+                        },
+                        "description": "POST /api/auth/refresh\n\nRefresh access token menggunakan refresh token.\n\nFields:\n- refreshToken (String, required)"
+                    }
+                },
+                {
+                    "name": "Logout",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"refreshToken\": \"{{refresh_token}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "logout"
+                            ]
+                        },
+                        "description": "POST /api/auth/logout\n\nLogout user dan invalidasi token.\nAuth: AUTH:LOGOUT\n\nFields:\n- refreshToken (String, required)"
+                    }
+                },
+                {
+                    "name": "Forgot Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"user@gmail.com\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "forgot-password"
+                            ]
+                        },
+                        "description": "POST /api/auth/forgot-password\n\nRequest link reset password ke email. Public endpoint.\n\nFields:\n- email (String, required, harus valid email)"
+                    }
+                },
+                {
+                    "name": "Reset Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"token\": \"RESET_TOKEN_FROM_EMAIL\",\n    \"newPassword\": \"NewPassword123!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "reset-password"
+                            ]
+                        },
+                        "description": "POST /api/auth/reset-password\n\nReset password menggunakan token dari email. Public endpoint.\n\nFields:\n- token (String, required)\n- newPassword (String, required, harus strong password)"
+                    }
+                },
+                {
+                    "name": "Change Password",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"currentPassword\": \"OldPassword123!\",\n    \"newPassword\": \"NewPassword456!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/change-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "change-password"
+                            ]
+                        },
+                        "description": "POST /api/auth/change-password\n\nMengganti password saat user sedang login.\nAuth: AUTH:CHANGE_PASSWORD\n\nFields:\n- currentPassword (String, required)\n- newPassword (String, required, harus strong password)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. User Management",
+            "description": "Base Path: /api/users",
+            "item": [
+                {
+                    "name": "Get All Users",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ]
+                        },
+                        "description": "GET /api/users\n\nMengambil daftar semua user.\nAuth: USER:READ (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Create User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"marketing01\",\n    \"email\": \"marketing01@loanova.com\",\n    \"password\": \"Marketing01*\",\n    \"branchId\": 1,\n    \"isActive\": true,\n    \"roleIds\": [3]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ]
+                        },
+                        "description": "POST /api/users\n\nMembuat user internal baru.\nAuth: USER:CREATE (Superadmin)\n\nFields:\n- username (String, required, max 50)\n- email (String, required, valid email)\n- password (String, required, strong password)\n- branchId (Long, optional - boleh null untuk customer)\n- isActive (Boolean, required)\n- roleIds (Set<Long>, required, minimal 1)"
+                    }
+                },
+                {
+                    "name": "Get User by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        },
+                        "description": "GET /api/users/{id}\n\nMengambil detail user berdasarkan ID.\nAuth: USER:DETAILS (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Get User by Username (Own Profile)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/by-username/Bima12345@",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "by-username",
+                                "Bima12345@"
+                            ]
+                        },
+                        "description": "GET /api/users/by-username/{username}\n\nMengambil detail user berdasarkan username (profil sendiri).\nAuth: Authenticated (hanya bisa akses profil sendiri)"
+                    }
+                },
+                {
+                    "name": "Update User",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"marketing01_updated\",\n    \"email\": \"marketing01_updated@loanova.com\",\n    \"branchId\": 1,\n    \"isActive\": true,\n    \"roleIds\": [2, 3]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        },
+                        "description": "PUT /api/users/{id}\n\nMemperbarui data user (tanpa password).\nAuth: USER:UPDATE (Superadmin)\n\nFields:\n- username (String, required, max 50)\n- email (String, required, valid email)\n- branchId (Long, optional)\n- isActive (Boolean, required)\n- roleIds (Set<Long>, required, minimal 1)"
+                    }
+                },
+                {
+                    "name": "Delete User",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        },
+                        "description": "DELETE /api/users/{id}\n\nMenghapus user.\nAuth: USER:DELETE (Superadmin)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. User Profiles",
+            "description": "Base Path: /api/user-profiles (Customer only)",
+            "item": [
+                {
+                    "name": "Get My Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user-profiles/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-profiles",
+                                "me"
+                            ]
+                        },
+                        "description": "GET /api/user-profiles/me\n\nMengambil profil user yang sedang login.\nAuth: PROFILE:READ_MY (Customer)"
+                    }
+                },
+                {
+                    "name": "Complete Profile",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "fullName",
+                                    "value": "John Doe",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "phoneNumber",
+                                    "value": "081234567890",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "userAddress",
+                                    "value": "Jl. Sudirman No. 1, Jakarta",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nik",
+                                    "value": "3201010101010001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "birthDate",
+                                    "value": "1990-01-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "npwpNumber",
+                                    "value": "1234567890123456",
+                                    "type": "text",
+                                    "description": "Optional, max 16 karakter"
+                                },
+                                {
+                                    "key": "ktpPhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Required - foto KTP"
+                                },
+                                {
+                                    "key": "profilePhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Required - foto profil/selfie"
+                                },
+                                {
+                                    "key": "npwpPhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Optional - foto NPWP"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user-profiles/complete",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-profiles",
+                                "complete"
+                            ]
+                        },
+                        "description": "POST /api/user-profiles/complete\n\nMelengkapi data profil (Multipart/form-data).\nAuth: PROFILE:COMPLETE (Customer)\n\nFields:\n- fullName (String, required, max 100)\n- phoneNumber (String, required, max 20)\n- userAddress (String, required)\n- nik (String, required, exactly 16 chars)\n- birthDate (LocalDate, required, format: yyyy-MM-dd)\n- npwpNumber (String, optional, max 16)\n- ktpPhoto (File, required)\n- profilePhoto (File, required)\n- npwpPhoto (File, optional)"
+                    }
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "fullName",
+                                    "value": "John Updated",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "phoneNumber",
+                                    "value": "081234567891",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "userAddress",
+                                    "value": "Jl. Thamrin No. 2, Jakarta",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "nik",
+                                    "value": "3201010101010001",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "birthDate",
+                                    "value": "1990-01-15",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "npwpNumber",
+                                    "value": "1234567890123456",
+                                    "type": "text",
+                                    "description": "Optional, max 16 karakter"
+                                },
+                                {
+                                    "key": "ktpPhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Optional - foto KTP baru"
+                                },
+                                {
+                                    "key": "profilePhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Optional - foto profil/selfie baru"
+                                },
+                                {
+                                    "key": "npwpPhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Optional - foto NPWP baru"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user-profiles/update",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-profiles",
+                                "update"
+                            ]
+                        },
+                        "description": "PUT /api/user-profiles/update\n\nMemperbarui data profil (Multipart/form-data). Foto bersifat opsional saat update.\nAuth: PROFILE:UPDATE (Customer)\n\nFields:\n- fullName (String, required, max 100)\n- phoneNumber (String, required, max 20)\n- userAddress (String, required)\n- nik (String, required, exactly 16 chars)\n- birthDate (LocalDate, required, format: yyyy-MM-dd)\n- npwpNumber (String, optional, max 16)\n- ktpPhoto (File, optional)\n- profilePhoto (File, optional)\n- npwpPhoto (File, optional)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. Roles & Permissions",
+            "description": "Base Path: /api/roles & /api/permissions",
+            "item": [
+                {
+                    "name": "Get All Roles",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles"
+                            ]
+                        },
+                        "description": "GET /api/roles\n\nDaftar semua role.\nAuth: ROLE:READ (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Create Role",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"roleName\": \"CUSTOM_ROLE\",\n    \"roleDescription\": \"Deskripsi role custom\",\n    \"permissionIds\": [1, 2, 3]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles"
+                            ]
+                        },
+                        "description": "POST /api/roles\n\nMembuat role custom baru.\nAuth: ROLE:CREATE (Superadmin)\n\nFields:\n- roleName (String, required, max 15)\n- roleDescription (String, required, max 255)\n- permissionIds (Set<Integer>, optional)"
+                    }
+                },
+                {
+                    "name": "Update Role",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"roleDescription\": \"Deskripsi role yang diperbarui\",\n    \"permissionIds\": [1, 2, 3, 4]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1"
+                            ]
+                        },
+                        "description": "PUT /api/roles/{id}\n\nUpdate role description & permissions.\nAuth: ROLE:UPDATE (Superadmin)\n\nFields:\n- roleDescription (String, required, max 255)\n- permissionIds (Set<Integer>, optional)"
+                    }
+                },
+                {
+                    "name": "Delete Role",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1"
+                            ]
+                        },
+                        "description": "DELETE /api/roles/{id}\n\nHapus role.\nAuth: ROLE:DELETE (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Get All Permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions"
+                            ]
+                        },
+                        "description": "GET /api/permissions\n\nDaftar semua permission sistem.\nAuth: PERMISSION:READ (Superadmin)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. User Plafond",
+            "description": "Base Path: /api/user-plafonds",
+            "item": [
+                {
+                    "name": "Assign Plafond to User",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"userId\": 1,\n    \"plafondId\": 1,\n    \"maxAmount\": 50000000\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user-plafonds/assign",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-plafonds",
+                                "assign"
+                            ]
+                        },
+                        "description": "POST /api/user-plafonds/assign\n\nAssign plafond ke user (Customer). Plafond lama yang masih aktif akan otomatis dinonaktifkan.\nAuth: USER_PLAFOND:ASSIGN (Superadmin/Backoffice)\n\nFields:\n- userId (Long, required)\n- plafondId (Long, required)\n- maxAmount (BigDecimal, required, harus > 0)"
+                    }
+                },
+                {
+                    "name": "Get Active User Plafond",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user-plafonds/users/1/active",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-plafonds",
+                                "users",
+                                "1",
+                                "active"
+                            ]
+                        },
+                        "description": "GET /api/user-plafonds/users/{userId}/active\n\nGet plafond aktif user.\nAuth: USER_PLAFOND:READ (Superadmin/Backoffice, atau Customer untuk diri sendiri)"
+                    }
+                },
+                {
+                    "name": "Get User Plafond History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user-plafonds/users/1/history",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user-plafonds",
+                                "users",
+                                "1",
+                                "history"
+                            ]
+                        },
+                        "description": "GET /api/user-plafonds/users/{userId}/history\n\nGet riwayat semua plafond user (active + inactive).\nAuth: USER_PLAFOND:HISTORY"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. Loan Applications",
+            "description": "Base Path: /api/loan-applications",
+            "item": [
+                {
+                    "name": "Submit Loan Application",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "branchId",
+                                    "value": "1",
+                                    "type": "text",
+                                    "description": "Required - ID cabang"
+                                },
+                                {
+                                    "key": "amount",
+                                    "value": "5000000",
+                                    "type": "text",
+                                    "description": "Required - jumlah pinjaman"
+                                },
+                                {
+                                    "key": "tenor",
+                                    "value": "12",
+                                    "type": "text",
+                                    "description": "Required - tenor dalam bulan"
+                                },
+                                {
+                                    "key": "occupation",
+                                    "value": "Karyawan Swasta",
+                                    "type": "text",
+                                    "description": "Required - pekerjaan, max 50 chars"
+                                },
+                                {
+                                    "key": "companyName",
+                                    "value": "PT Maju Jaya",
+                                    "type": "text",
+                                    "description": "Optional - nama perusahaan, max 50 chars"
+                                },
+                                {
+                                    "key": "rekeningNumber",
+                                    "value": "1234567890",
+                                    "type": "text",
+                                    "description": "Required - nomor rekening, max 50 chars"
+                                },
+                                {
+                                    "key": "savingBookCover",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Required - foto cover buku tabungan"
+                                },
+                                {
+                                    "key": "payslipPhoto",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "Required - foto slip gaji"
+                                },
+                                {
+                                    "key": "latitude",
+                                    "value": "-6.2088",
+                                    "type": "text",
+                                    "description": "Required - latitude GPS lokasi pengajuan"
+                                },
+                                {
+                                    "key": "longitude",
+                                    "value": "106.8456",
+                                    "type": "text",
+                                    "description": "Required - longitude GPS lokasi pengajuan"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications"
+                            ]
+                        },
+                        "description": "POST /api/loan-applications\n\nSubmit pengajuan pinjaman baru (Multipart/form-data).\nAuth: LOAN:SUBMIT (Customer)\n\nFields:\n- branchId (String, required)\n- amount (String, required)\n- tenor (String, required)\n- occupation (String, required, max 50)\n- companyName (String, optional, max 50)\n- rekeningNumber (String, required, max 50)\n- savingBookCover (File, required)\n- payslipPhoto (File, required)\n- latitude (String, required)\n- longitude (String, required)"
+                    }
+                },
+                {
+                    "name": "Get All Applications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications\n\nGet semua pengajuan (Filter by role).\nSuperadmin/Backoffice: semua data\nMarketing/BranchManager: data cabang sendiri\nCustomer: data sendiri\nAuth: LOAN:READ_ALL"
+                    }
+                },
+                {
+                    "name": "Get My Applications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/my",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "my"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/my\n\nGet pengajuan saya sendiri.\nAuth: LOAN:READ_MY (Customer)"
+                    }
+                },
+                {
+                    "name": "Get Application Detail",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/{id}\n\nGet detail pengajuan.\nAuth: LOAN:DETAILS (All Roles)"
+                    }
+                },
+                {
+                    "name": "Get Application History",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1/history",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1",
+                                "history"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/{id}/history\n\nGet history status pengajuan.\nAuth: LOAN:HISTORY (All Roles)"
+                    }
+                },
+                {
+                    "name": "Get Pending Review (Marketing)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/pending-review",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "pending-review"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/pending-review\n\nGet list pending review (status PENDING_REVIEW).\nAuth: LOAN:LIST_PENDING_REVIEW (Marketing)"
+                    }
+                },
+                {
+                    "name": "Review Application (Marketing)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"action\": \"PROCEED\",\n    \"comment\": \"Dokumen lengkap, data valid\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1/review",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1",
+                                "review"
+                            ]
+                        },
+                        "description": "PUT /api/loan-applications/{id}/review\n\nReview pengajuan (PROCEED/REJECT).\nAuth: LOAN:REVIEW (Marketing)\n\nFields:\n- action (String, required - PROCEED atau REJECT)\n- comment (String, optional - wajib jika REJECT)"
+                    }
+                },
+                {
+                    "name": "Get Waiting Approval (Branch Manager)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/waiting-approval",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "waiting-approval"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/waiting-approval\n\nGet list waiting approval (status WAITING_APPROVAL).\nAuth: LOAN:LIST_WAITING_APPROVAL (Branch Manager)"
+                    }
+                },
+                {
+                    "name": "Approve Application (Branch Manager)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"action\": \"APPROVE\",\n    \"comment\": \"Disetujui sesuai kebijakan\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1/approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1",
+                                "approve"
+                            ]
+                        },
+                        "description": "PUT /api/loan-applications/{id}/approve\n\nApprove/Reject pengajuan.\nAuth: LOAN:APPROVE (Branch Manager)\n\nFields:\n- action (String, required - APPROVE atau REJECT)\n- comment (String, optional - wajib jika REJECT)"
+                    }
+                },
+                {
+                    "name": "Get Waiting Disbursement (Backoffice)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/waiting-disbursement",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "waiting-disbursement"
+                            ]
+                        },
+                        "description": "GET /api/loan-applications/waiting-disbursement\n\nGet list waiting disbursement (status WAITING_DISBURSEMENT).\nAuth: LOAN:LIST_WAITING_DISBURSE (Backoffice)"
+                    }
+                },
+                {
+                    "name": "Disburse Application (Backoffice)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1/disburse",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1",
+                                "disburse"
+                            ]
+                        },
+                        "description": "PUT /api/loan-applications/{id}/disburse\n\nCairkan dana pinjaman (status jadi DISBURSED).\nAuth: LOAN:DISBURSE (Backoffice)"
+                    }
+                },
+                {
+                    "name": "Backoffice Reject",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"action\": \"REJECT\",\n    \"comment\": \"Data tidak sesuai saat verifikasi akhir\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/loan-applications/1/backoffice-reject",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "loan-applications",
+                                "1",
+                                "backoffice-reject"
+                            ]
+                        },
+                        "description": "PUT /api/loan-applications/{id}/backoffice-reject\n\nTolak pencairan.\nAuth: LOAN:REJECT_BACKOFFICE (Backoffice)\n\nFields:\n- action (String, required - REJECT)\n- comment (String, optional - alasan penolakan)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. Plafond Master Data",
+            "description": "Base Path: /api/plafonds",
+            "item": [
+                {
+                    "name": "Get Public Plafonds",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/plafonds/public",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plafonds",
+                                "public"
+                            ]
+                        },
+                        "description": "GET /api/plafonds/public\n\nDaftar plafond untuk umum (landing page). Public endpoint."
+                    }
+                },
+                {
+                    "name": "Get All Plafonds (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/plafonds",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plafonds"
+                            ]
+                        },
+                        "description": "GET /api/plafonds\n\nDaftar semua plafond.\nAuth: PLAFOND:READ (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Get Plafond by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/plafonds/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plafonds",
+                                "1"
+                            ]
+                        },
+                        "description": "GET /api/plafonds/{id}\n\nDetail plafond.\nAuth: PLAFOND:DETAILS (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Create Plafond",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Platinum\",\n    \"description\": \"Plafond untuk nasabah premium\",\n    \"maxAmount\": 100000000,\n    \"interestRate\": 8.5,\n    \"tenorMin\": 6,\n    \"tenorMax\": 36\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/plafonds",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plafonds"
+                            ]
+                        },
+                        "description": "POST /api/plafonds\n\nBuat jenis plafond baru.\nAuth: PLAFOND:CREATE (Superadmin)\n\nFields:\n- name (String, required, max 100)\n- description (String, required)\n- maxAmount (BigDecimal, required, > 0)\n- interestRate (BigDecimal, required, >= 0)\n- tenorMin (Integer, required, >= 1 bulan)\n- tenorMax (Integer, required, >= 1 bulan)"
+                    }
+                },
+                {
+                    "name": "Delete Plafond (Soft Delete)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/plafonds/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plafonds",
+                                "1"
+                            ]
+                        },
+                        "description": "DELETE /api/plafonds/{id}\n\nHapus (Soft Delete) plafond.\nAuth: PLAFOND:DELETE (Superadmin)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. Branch Management",
+            "description": "Base Path: /api/branches",
+            "item": [
+                {
+                    "name": "Get All Branches",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/branches",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "branches"
+                            ]
+                        },
+                        "description": "GET /api/branches\n\nDaftar semua cabang.\nAuth: BRANCH:READ (All Roles)"
+                    }
+                },
+                {
+                    "name": "Create Branch",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"branchCode\": \"BRC002\",\n    \"branchName\": \"Cabang Surabaya\",\n    \"address\": \"Jl. Pemuda No. 10, Surabaya\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/branches",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "branches"
+                            ]
+                        },
+                        "description": "POST /api/branches\n\nTambah cabang baru.\nAuth: BRANCH:CREATE (Superadmin)\n\nFields:\n- branchCode (String, required, max 20)\n- branchName (String, required, max 100)\n- address (String, required)"
+                    }
+                },
+                {
+                    "name": "Update Branch",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"branchCode\": \"BRC002\",\n    \"branchName\": \"Cabang Surabaya Updated\",\n    \"address\": \"Jl. Basuki Rahmat No. 5, Surabaya\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/branches/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "branches",
+                                "1"
+                            ]
+                        },
+                        "description": "PUT /api/branches/{id}\n\nUpdate data cabang.\nAuth: BRANCH:UPDATE (Superadmin)\n\nFields:\n- branchCode (String, required, max 20)\n- branchName (String, required, max 100)\n- address (String, required)"
+                    }
+                },
+                {
+                    "name": "Delete Branch",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/branches/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "branches",
+                                "1"
+                            ]
+                        },
+                        "description": "DELETE /api/branches/{id}\n\nHapus cabang (soft delete).\nAuth: BRANCH:DELETE (Superadmin)"
+                    }
+                },
+                {
+                    "name": "Restore Branch",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/branches/1/restore",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "branches",
+                                "1",
+                                "restore"
+                            ]
+                        },
+                        "description": "PUT /api/branches/{id}/restore\n\nRestore cabang yang dihapus.\nAuth: BRANCH:RESTORE (Superadmin)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "9. Notifications",
+            "description": "Base Path: /api/notifications",
+            "item": [
+                {
+                    "name": "Get My Notifications",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/notifications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications"
+                            ]
+                        },
+                        "description": "GET /api/notifications\n\nDaftar notifikasi saya.\nAuth: Authenticated"
+                    }
+                },
+                {
+                    "name": "Mark Notification as Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/notifications/1/read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications",
+                                "1",
+                                "read"
+                            ]
+                        },
+                        "description": "PUT /api/notifications/{id}/read\n\nTandai notifikasi sudah dibaca.\nAuth: Authenticated"
+                    }
+                },
+                {
+                    "name": "Mark All Notifications as Read",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/notifications/read-all",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications",
+                                "read-all"
+                            ]
+                        },
+                        "description": "PUT /api/notifications/read-all\n\nTandai semua notifikasi sudah dibaca.\nAuth: Authenticated"
+                    }
+                },
+                {
+                    "name": "Test Push Notification",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"username\": \"customer01\",\n    \"title\": \"Test Notification\",\n    \"message\": \"Ini adalah test push notification\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/notifications/test-push",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "notifications",
+                                "test-push"
+                            ]
+                        },
+                        "description": "POST /api/notifications/test-push\n\nTest kirim notifikasi.\nAuth: ROLE_SUPERADMIN\n\nFields:\n- username (String, required)\n- title (String, required)\n- message (String, required)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "10. Dashboard",
+            "description": "Base Path: /api/dashboard",
+            "item": [
+                {
+                    "name": "Get Dashboard Statistics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/dashboard/statistics",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "dashboard",
+                                "statistics"
+                            ]
+                        },
+                        "description": "GET /api/dashboard/statistics\n\nStatistik dashboard (role-based filtered).\nAuth: DASHBOARD:STATISTICS\n\nSUPERADMIN & BACKOFFICE: Semua data.\nMARKETING & BRANCHMANAGER: Data cabang sendiri."
+                    }
+                }
+            ]
+        }
+    ]
+}
