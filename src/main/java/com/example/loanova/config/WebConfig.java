@@ -32,6 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
         .addMapping("/**") // Berlaku semua endpoint
         .allowedOrigins(
             "http://localhost:4200", // Frontend Local Development
+            "http://10.55.44.44:4200", // Frontend Local via IP (untuk HP/Android)
             "https://loanova-fe.vercel.app" // Frontend Production
             )
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Method yang diizinkan
